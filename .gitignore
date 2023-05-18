@@ -1,5 +1,1 @@
 .idea
-.env
-.dockerignore
-Dockerfile
-docker-compose.yml

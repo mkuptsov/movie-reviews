@@ -19,8 +19,6 @@ func main() {
 	cfg, err := config.NewConfig()
 	failOnError(err, "getting config: ")
 
-	fmt.Println(os.Getpid())
-
 	go func() {
 		signalChannel := make(chan os.Signal, 1)
 		signal.Notify(signalChannel, os.Interrupt)
