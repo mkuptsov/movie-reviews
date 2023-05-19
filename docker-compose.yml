@@ -13,14 +13,29 @@ services:
     ports:
       - 5432:5432
 
+  migrator:
+    build: tern
+    command:
+      - migrate
+      - --conn-string
+      - postgres://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
+      - --migrations
+      - /migrations
+    depends_on:
+      - db
+
   server:
     build: .
     restart: always
     environment:
       DB_URL: postgres://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}
       PORT: 8080
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
     ports:
       - 8080:8080
+    depends_on:
+      - migrator
 
 volumes:
   db_data:
