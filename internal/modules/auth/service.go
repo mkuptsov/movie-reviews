@@ -11,14 +11,14 @@ import (
 )
 
 type Service struct {
-	userService users.Service
-	jwtService  jwt.Service
+	userService *users.Service
+	jwtService  *jwt.Service
 }
 
 func NewService(userService *users.Service, jwtService *jwt.Service) *Service {
 	return &Service{
-		userService: *userService,
-		jwtService:  *jwtService,
+		userService: userService,
+		jwtService:  jwtService,
 	}
 }
 

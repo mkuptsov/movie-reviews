@@ -27,6 +27,7 @@ func main() {
 
 	db, err := getDb(context.Background(), cfg.DbUrl)
 	failOnError(err, "getting db: ")
+	defer db.Close()
 
 	jwtService := jwt.NewService(cfg.Jwt.Secret, cfg.Jwt.AccessExpiration)
 	usersModule := users.NewModule(db)
@@ -55,7 +56,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db.Close()
 	fmt.Printf("server stopped: %v\n", err)
 }
 

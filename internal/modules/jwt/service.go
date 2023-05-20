@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -26,6 +27,7 @@ func (s *Service) GenerateToken(id int, role string) (string, error) {
 	claim := &AccessClaim{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
+			Subject:   strconv.Itoa(id),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessExpiration)),
 		},

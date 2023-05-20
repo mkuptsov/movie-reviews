@@ -18,8 +18,8 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 }
 
 func (r *Repository) Create(ctx context.Context, user *UserWithPassword) error {
-	queryString := "INSERT INTO users (username, email, pass_hash) VALUES ($1, $2, $3) returning id, created_at"
-	err := r.db.QueryRow(ctx, queryString, user.Username, user.Email, user.PasswordHash).Scan(&user.Id, &user.CreatedAt)
+	queryString := "INSERT INTO users (username, email, pass_hash) VALUES ($1, $2, $3) returning id, created_at, role"
+	err := r.db.QueryRow(ctx, queryString, user.Username, user.Email, user.PasswordHash).Scan(&user.Id, &user.CreatedAt, &user.Role)
 
 	return err
 }
