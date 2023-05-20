@@ -10,6 +10,10 @@ import (
 	"time"
 
 	"github.com/cloudmachinery/movie-reviews/internal/config"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,6 +22,20 @@ func main() {
 
 	cfg, err := config.NewConfig()
 	failOnError(err, "getting config: ")
+
+	fmt.Printf("\nstarted with config:\n%+v\n", *cfg)
+
+	db, err := getDb(context.Background(), cfg.DbUrl)
+	failOnError(err, "getting db: ")
+	defer db.Close()
+
+	jwtService := jwt.NewService(cfg.Jwt.Secret, cfg.Jwt.AccessExpiration)
+	usersModule := users.NewModule(db)
+	authModule := auth.NewModule(usersModule.Service, jwtService)
+
+	e.POST("/api/auth/register", authModule.Handler.Register)
+	e.POST("api/auth/login", authModule.Handler.Login)
+	e.GET("/api/users", usersModule.Handler.GetUsers)
 
 	go func() {
 		signalChannel := make(chan os.Signal, 1)
@@ -39,7 +57,18 @@ func main() {
 	}
 
 	fmt.Printf("server stopped: %v\n", err)
-	// db.Close()
+}
+
+func getDb(ctx context.Context, connString string) (*pgxpool.Pool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	db, err := pgxpool.New(ctx, connString)
+	if err != nil {
+		return nil, fmt.Errorf("connaction to db: %w", err)
+	}
+
+	return db, nil
 }
 
 func failOnError(err error, msg string) {
