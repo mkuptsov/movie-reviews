@@ -24,7 +24,7 @@ func NewService(secret string, accessExpiration time.Duration) *Service {
 func (s *Service) GenerateToken(id int, role string) (string, error) {
 	now := time.Now()
 
-	claim := &AccessClaim{
+	claims := &AccessClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
 			Subject:   strconv.Itoa(id),
@@ -35,7 +35,7 @@ func (s *Service) GenerateToken(id int, role string) (string, error) {
 		Role:   role,
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(s.secret))
 	if err != nil {
 		return "", fmt.Errorf("sign token: %w", err)
