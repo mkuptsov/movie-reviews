@@ -13,15 +13,16 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
+	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	e := echo.New()
-
 	cfg, err := config.NewConfig()
 	failOnError(err, "getting config: ")
+
+	validation.SetupValidators()
 
 	fmt.Printf("\nstarted with config:\n%+v\n", *cfg)
 
@@ -33,9 +34,18 @@ func main() {
 	usersModule := users.NewModule(db)
 	authModule := auth.NewModule(usersModule.Service, jwtService)
 
-	e.POST("/api/auth/register", authModule.Handler.Register)
-	e.POST("api/auth/login", authModule.Handler.Login)
-	e.GET("/api/users", usersModule.Handler.GetUsers)
+	e := echo.New()
+	api := e.Group("/api")
+
+	authMiddleware := jwt.NewAuthMidlleware(cfg.Jwt.Secret)
+
+	api.POST("/auth/register", authModule.Handler.Register)
+	api.POST("/auth/login", authModule.Handler.Login)
+
+	api.GET("/users", usersModule.Handler.GetUsers)
+	api.GET("/users/:userId", usersModule.Handler.GetUserById)
+	api.DELETE("/users/:userId", usersModule.Handler.Delete, authMiddleware, auth.Self)
+	api.PUT("/users/:userId", usersModule.Handler.Update, authMiddleware, auth.Self)
 
 	go func() {
 		signalChannel := make(chan os.Signal, 1)
