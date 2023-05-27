@@ -10,12 +10,15 @@ import (
 	"time"
 
 	"github.com/cloudmachinery/movie-reviews/internal/config"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"gopkg.in/validator.v2"
 )
 
 func main() {
@@ -23,8 +26,6 @@ func main() {
 	failOnError(err, "getting config: ")
 
 	validation.SetupValidators()
-
-	fmt.Printf("\nstarted with config:\n%+v\n", *cfg)
 
 	db, err := getDb(context.Background(), cfg.DbUrl)
 	failOnError(err, "getting db: ")
@@ -34,18 +35,28 @@ func main() {
 	usersModule := users.NewModule(db)
 	authModule := auth.NewModule(usersModule.Service, jwtService)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err = RegisterAdmin(ctx, authModule, cfg.Admin)
+	if apperrors.Is(err, apperrors.InternalCode) {
+		log.Fatal(err)
+	}
+
 	e := echo.New()
-	api := e.Group("/api")
+	e.HTTPErrorHandler = echox.ErrorHandler
 
 	authMiddleware := jwt.NewAuthMidlleware(cfg.Jwt.Secret)
+	api := e.Group("/api")
+	api.Use(authMiddleware)
 
 	api.POST("/auth/register", authModule.Handler.Register)
 	api.POST("/auth/login", authModule.Handler.Login)
 
-	api.GET("/users", usersModule.Handler.GetUsers)
 	api.GET("/users/:userId", usersModule.Handler.GetUserById)
-	api.DELETE("/users/:userId", usersModule.Handler.Delete, authMiddleware, auth.Self)
-	api.PUT("/users/:userId", usersModule.Handler.Update, authMiddleware, auth.Self)
+	api.DELETE("/users/:userId", usersModule.Handler.Delete, auth.Self)
+	api.PUT("/users/:userId", usersModule.Handler.Update, auth.Self)
+	api.PUT("/users/:userId/role/:roleName", usersModule.Handler.UpdateUserRole, auth.Admin)
 
 	go func() {
 		signalChannel := make(chan os.Signal, 1)
@@ -79,6 +90,26 @@ func getDb(ctx context.Context, connString string) (*pgxpool.Pool, error) {
 	}
 
 	return db, nil
+}
+
+func RegisterAdmin(ctx context.Context, authModule *auth.Module, cfg config.AdminConfig) error {
+	req := auth.RegisterRequest{
+		Email:    cfg.Email,
+		Username: cfg.Username,
+		Pasword:  cfg.Password,
+		Role:     users.AdminRole,
+	}
+
+	err := validator.Validate(req)
+	if err != nil {
+		return apperrors.Internal(err)
+	}
+
+	return authModule.Service.Register(ctx, &users.User{
+		Email:    req.Email,
+		Username: req.Username,
+		Role:     users.AdminRole,
+	}, req.Pasword)
 }
 
 func failOnError(err error, msg string) {

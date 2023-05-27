@@ -1,10 +1,10 @@
 package jwt
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -38,7 +38,7 @@ func (s *Service) GenerateToken(id int, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(s.secret))
 	if err != nil {
-		return "", fmt.Errorf("sign token: %w", err)
+		return "", apperrors.Internal(err)
 	}
 
 	return signed, nil
