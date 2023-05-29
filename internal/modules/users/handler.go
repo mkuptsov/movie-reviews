@@ -69,7 +69,7 @@ func (h *Handler) Update(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, "user updated")
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (h *Handler) UpdateUserRole(c echo.Context) error {
@@ -83,5 +83,5 @@ func (h *Handler) UpdateUserRole(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, "user role updated")
+	return c.NoContent(http.StatusNoContent)
 }

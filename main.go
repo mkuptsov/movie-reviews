@@ -18,6 +18,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"gopkg.in/validator.v2"
 )
 
@@ -45,6 +46,7 @@ func main() {
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.ErrorHandler
+	e.Use(middleware.Recover())
 
 	authMiddleware := jwt.NewAuthMidlleware(cfg.Jwt.Secret)
 	api := e.Group("/api")
@@ -100,6 +102,9 @@ func RegisterAdmin(ctx context.Context, authModule *auth.Module, cfg config.Admi
 		Role:     users.AdminRole,
 	}
 
+	if cfg.Email == "" && cfg.Username == "" && cfg.Password == "" {
+		return nil
+	}
 	err := validator.Validate(req)
 	if err != nil {
 		return apperrors.Internal(err)
