@@ -1,11 +1,11 @@
 package users
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,26 +18,24 @@ type UpdateRequest struct {
 	Bio    *string `json:"bio"`
 }
 
+type UpdateUserRoleRequest struct {
+	userId   int    `param:"userId" validate:"nonzero"`
+	roleName string `param:"roleName" validate:"nonzero,role"`
+}
+
 func NewHandler(service *Service) *Handler {
 	return &Handler{
 		Service: service,
 	}
 }
 
-func (h *Handler) GetUsers(c echo.Context) error {
-	return c.String(http.StatusOK, "not implemented")
-}
-
 func (h *Handler) GetUserById(c echo.Context) error {
 	idStr := c.Param("userId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return apperrors.BadRequestHidden(err, "userId must be a number")
 	}
 	user, err := h.Service.GetUserById(c.Request().Context(), id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return c.JSON(http.StatusNotFound, "user not found")
-	}
 	if err != nil {
 		return err
 	}
@@ -49,13 +47,10 @@ func (h *Handler) Delete(c echo.Context) error {
 	idStr := c.Param("userId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return apperrors.BadRequestHidden(err, "userId must be a number")
 	}
 
 	err = h.Service.Delete(c.Request().Context(), id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return c.JSON(http.StatusNotFound, "user not found")
-	}
 	if err != nil {
 		return err
 	}
@@ -64,18 +59,29 @@ func (h *Handler) Delete(c echo.Context) error {
 }
 
 func (h *Handler) Update(c echo.Context) error {
-	var req UpdateRequest
-	if err := c.Bind(&req); err != nil {
-		return nil
-	}
-
-	err := h.Service.Update(c.Request().Context(), req.UserId, *req.Bio)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return c.JSON(http.StatusNotFound, "user not found")
-	}
+	req, err := echox.BindAndValidate[UpdateRequest](c)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, "user updated")
+	err = h.Service.Update(c.Request().Context(), req.UserId, *req.Bio)
+	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handler) UpdateUserRole(c echo.Context) error {
+	req, err := echox.BindAndValidate[UpdateUserRoleRequest](c)
+	if err != nil {
+		return err
+	}
+
+	err = h.Service.UpdateUserRole(c.Request().Context(), req.userId, req.roleName)
+	if err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

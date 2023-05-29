@@ -17,24 +17,18 @@ func NewAuthMidlleware(secret string) echo.MiddlewareFunc {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return &AccessClaims{}
 		},
+		ErrorHandler: func(c echo.Context, err error) error {
+			return nil
+		},
+		ContinueOnIgnoredError: true,
 	})
 }
 
 func GetClaims(c echo.Context) *AccessClaims {
 	token := c.Get(tokenContexKey)
 	if token == nil {
-		// return echo.NewHTTPError(http.StatusUnauthorized)
-		panic("attempt to get token before auth middleware")
-	}
-	t, ok := token.(*jwt.Token)
-	if !ok {
-		panic("invalid token type")
+		return nil
 	}
 
-	ac, ok := t.Claims.(*AccessClaims)
-	if !ok {
-		panic("invalid claims type")
-	}
-
-	return ac
+	return token.(*jwt.Token).Claims.(*AccessClaims)
 }

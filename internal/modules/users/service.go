@@ -33,3 +33,7 @@ func (s *Service) Delete(ctx context.Context, id int) error {
 func (s *Service) Update(ctx context.Context, id int, bio string) error {
 	return s.repo.Update(ctx, id, bio)
 }
+
+func (s *Service) UpdateUserRole(ctx context.Context, id int, roleName string) error {
+	return s.repo.UpdateUserRole(ctx, id, roleName)
+}
