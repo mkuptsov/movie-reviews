@@ -2,6 +2,8 @@ package users
 
 import (
 	"context"
+
+	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
 )
 
 type Service struct {
@@ -15,7 +17,14 @@ func NewService(repo *Repository) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, user *UserWithPassword) error {
-	return s.repo.Create(ctx, user)
+	err := s.repo.Create(ctx, user)
+	if err != nil {
+		return err
+	}
+
+	logger := log.FromContext(ctx)
+	logger.Info("user created")
+	return nil
 }
 
 func (s *Service) GetUserWithPassword(ctx context.Context, email string) (*UserWithPassword, error) {
@@ -27,7 +36,14 @@ func (s *Service) GetUserById(ctx context.Context, id int) (*User, error) {
 }
 
 func (s *Service) Delete(ctx context.Context, id int) error {
-	return s.repo.Delete(ctx, id)
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	logger := log.FromContext(ctx)
+	logger.Info("user deleted")
+	return nil
 }
 
 func (s *Service) Update(ctx context.Context, id int, bio string) error {
@@ -35,5 +51,12 @@ func (s *Service) Update(ctx context.Context, id int, bio string) error {
 }
 
 func (s *Service) UpdateUserRole(ctx context.Context, id int, roleName string) error {
-	return s.repo.UpdateUserRole(ctx, id, roleName)
+	err := s.repo.UpdateUserRole(ctx, id, roleName)
+	if err != nil {
+		return err
+	}
+
+	logger := log.FromContext(ctx)
+	logger.Info("user role updated")
+	return nil
 }

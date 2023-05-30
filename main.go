@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,11 +13,13 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/exp/slog"
 	"gopkg.in/validator.v2"
 )
 
@@ -28,9 +29,14 @@ func main() {
 
 	validation.SetupValidators()
 
+	logger, err := log.SetupLogger(cfg.Local, cfg.LogLevel)
+	failOnError(err, "setup logger: ")
+	slog.SetDefault(logger)
+
 	db, err := getDb(context.Background(), cfg.DbUrl)
 	failOnError(err, "getting db: ")
 	defer db.Close()
+	slog.Info("db connected")
 
 	jwtService := jwt.NewService(cfg.Jwt.Secret, cfg.Jwt.AccessExpiration)
 	usersModule := users.NewModule(db)
@@ -41,7 +47,8 @@ func main() {
 
 	err = RegisterAdmin(ctx, authModule, cfg.Admin)
 	if apperrors.Is(err, apperrors.InternalCode) {
-		log.Fatal(err)
+		slog.Error("create admin", "error", err)
+		os.Exit(1)
 	}
 
 	e := echo.New()
@@ -51,6 +58,7 @@ func main() {
 	authMiddleware := jwt.NewAuthMidlleware(cfg.Jwt.Secret)
 	api := e.Group("/api")
 	api.Use(authMiddleware)
+	api.Use(echox.Logger)
 
 	api.POST("/auth/register", authModule.Handler.Register)
 	api.POST("/auth/login", authModule.Handler.Login)
@@ -68,18 +76,19 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
+		slog.Info("graceful shutdown started")
 		err := e.Shutdown(ctx)
 		if err != nil {
-			fmt.Printf("shutdown server: %v", err)
+			slog.Error("server shutdown", "error", err)
 		}
 	}()
 
 	err = e.Start(fmt.Sprintf(":%d", cfg.Port))
 	if err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+		slog.Error("server error", "error", err)
 	}
 
-	fmt.Printf("server stopped: %v\n", err)
+	slog.Info("server stopped", "message", err)
 }
 
 func getDb(ctx context.Context, connString string) (*pgxpool.Pool, error) {
@@ -119,6 +128,7 @@ func RegisterAdmin(ctx context.Context, authModule *auth.Module, cfg config.Admi
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		slog.Error(msg, "error", err)
+		os.Exit(1)
 	}
 }
