@@ -10,7 +10,7 @@ import (
 func Logger(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestGroup := slog.Group("request",
-			slog.String("metod", c.Request().Method),
+			slog.String("method", c.Request().Method),
 			slog.String("url", c.Request().URL.String()))
 		attrs := []any{requestGroup}
 

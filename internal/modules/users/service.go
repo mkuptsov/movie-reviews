@@ -23,7 +23,8 @@ func (s *Service) Create(ctx context.Context, user *UserWithPassword) error {
 	}
 
 	logger := log.FromContext(ctx)
-	logger.Info("user created")
+	logger.Info("user created",
+		"email", user.Email)
 	return nil
 }
 
@@ -42,7 +43,8 @@ func (s *Service) Delete(ctx context.Context, id int) error {
 	}
 
 	logger := log.FromContext(ctx)
-	logger.Info("user deleted")
+	logger.Info("user deleted",
+		"user_id", id)
 	return nil
 }
 
@@ -57,6 +59,8 @@ func (s *Service) UpdateUserRole(ctx context.Context, id int, roleName string) e
 	}
 
 	logger := log.FromContext(ctx)
-	logger.Info("user role updated")
+	logger.Info("user role updated",
+		"user_id", id,
+		"new_role", roleName)
 	return nil
 }

@@ -45,14 +45,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err = RegisterAdmin(ctx, authModule, cfg.Admin)
-	if apperrors.Is(err, apperrors.InternalCode) {
-		slog.Error("create admin", "error", err)
-		os.Exit(1)
-	}
+	err = registerAdmin(ctx, authModule, cfg.Admin)
+	failOnError(err, "create admin")
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.ErrorHandler
+	e.HideBanner = true
+	e.HidePort = true
 	e.Use(middleware.Recover())
 
 	authMiddleware := jwt.NewAuthMidlleware(cfg.Jwt.Secret)
@@ -85,7 +84,7 @@ func main() {
 
 	err = e.Start(fmt.Sprintf(":%d", cfg.Port))
 	if err != nil && err != http.ErrServerClosed {
-		slog.Error("server error", "error", err)
+		slog.Error("server failed", "error", err)
 	}
 
 	slog.Info("server stopped", "message", err)
@@ -97,13 +96,13 @@ func getDb(ctx context.Context, connString string) (*pgxpool.Pool, error) {
 
 	db, err := pgxpool.New(ctx, connString)
 	if err != nil {
-		return nil, fmt.Errorf("connaction to db: %w", err)
+		return nil, fmt.Errorf("connection to db: %w", err)
 	}
 
 	return db, nil
 }
 
-func RegisterAdmin(ctx context.Context, authModule *auth.Module, cfg config.AdminConfig) error {
+func registerAdmin(ctx context.Context, authModule *auth.Module, cfg config.AdminConfig) error {
 	req := auth.RegisterRequest{
 		Email:    cfg.Email,
 		Username: cfg.Username,
@@ -119,11 +118,21 @@ func RegisterAdmin(ctx context.Context, authModule *auth.Module, cfg config.Admi
 		return apperrors.Internal(err)
 	}
 
-	return authModule.Service.Register(ctx, &users.User{
+	err = authModule.Service.Register(ctx, &users.User{
 		Email:    req.Email,
 		Username: req.Username,
 		Role:     users.AdminRole,
 	}, req.Pasword)
+
+	if apperrors.Is(err, apperrors.InternalCode) {
+		return err
+	}
+	if err == nil {
+		slog.Info("admin created",
+			"admin email", req.Email)
+	}
+
+	return nil
 }
 
 func failOnError(err error, msg string) {
