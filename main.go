@@ -129,7 +129,7 @@ func registerAdmin(ctx context.Context, authModule *auth.Module, cfg config.Admi
 	}
 	if err == nil {
 		slog.Info("admin created",
-			"admin email", req.Email)
+			"admin_email", req.Email)
 	}
 
 	return nil
