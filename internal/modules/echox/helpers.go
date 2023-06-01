@@ -11,6 +11,7 @@ func BindAndValidate[T any](c echo.Context) (*T, error) {
 	if err := c.Bind(req); err != nil {
 		return nil, apperrors.BadRequestHidden(err, "invalid or malformed requset")
 	}
+
 	if err := validator.Validate(req); err != nil {
 		return nil, apperrors.BadRequest(err)
 	}

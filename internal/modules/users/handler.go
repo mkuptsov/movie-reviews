@@ -19,8 +19,8 @@ type UpdateRequest struct {
 }
 
 type UpdateUserRoleRequest struct {
-	userId   int    `param:"userId" validate:"nonzero"`
-	roleName string `param:"roleName" validate:"nonzero,role"`
+	UserId   int    `param:"userId" validate:"nonzero"`
+	RoleName string `param:"roleName" validate:"role"`
 }
 
 func NewHandler(service *Service) *Handler {
@@ -78,7 +78,7 @@ func (h *Handler) UpdateUserRole(c echo.Context) error {
 		return err
 	}
 
-	err = h.Service.UpdateUserRole(c.Request().Context(), req.userId, req.roleName)
+	err = h.Service.UpdateUserRole(c.Request().Context(), req.UserId, req.RoleName)
 	if err != nil {
 		return err
 	}

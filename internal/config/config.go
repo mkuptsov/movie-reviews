@@ -8,10 +8,12 @@ import (
 )
 
 type Config struct {
-	DbUrl string      `env:"DB_URL"`
-	Port  int         `env:"PORT" envDefault:"8080"`
-	Jwt   JwtConfig   `envPrefix:"JWT_"`
-	Admin AdminConfig `envPrefix:"ADMIN_"`
+	DbUrl    string      `env:"DB_URL"`
+	Port     int         `env:"PORT" envDefault:"8080"`
+	Jwt      JwtConfig   `envPrefix:"JWT_"`
+	Admin    AdminConfig `envPrefix:"ADMIN_"`
+	Local    bool        `env:"LOCAL" envDefault:"false"`
+	LogLevel string      `env:"LOG_LEVEL" envDefault:"info"`
 }
 
 type JwtConfig struct {

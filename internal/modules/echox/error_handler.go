@@ -2,10 +2,10 @@ package echox
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,15 +29,21 @@ func ErrorHandler(err error, c echo.Context) {
 		IncidentId: appError.IncidentId,
 	}
 
+	logger := log.FromContext(c.Request().Context())
+
 	if appError.Code == apperrors.InternalCode {
-		log.Printf("[ERROR] %s %s: %s\nincidentId: %s\nstack trace: %s",
-			c.Request().Method, c.Request().RequestURI, err.Error(), appError.IncidentId, appError.StackTrace)
+		logger.Error("server error",
+			"message", err.Error(),
+			"incidentId", appError.IncidentId,
+			"stack trace", appError.StackTrace)
 	} else {
-		log.Printf("[WARN] %s %s: %s", c.Request().Method, c.Request().RequestURI, err.Error())
+		logger.Warn("client error",
+			"message", err.Error())
 	}
 
 	if err = c.JSON(toHttpStatus(appError.Code), httpError); err != nil {
-		c.Logger().Error(err)
+		logger.Error("server error",
+			"message", err.Error())
 	}
 }
 
