@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/labstack/echo/v4"
@@ -19,7 +20,7 @@ func NewHandler(authService *Service) *Handler {
 }
 
 func (h *Handler) Register(c echo.Context) error {
-	req, err := echox.BindAndValidate[RegisterRequest](c)
+	req, err := echox.BindAndValidate[contracts.RegisterUserRequest](c)
 	if err != nil {
 		return err
 	}
@@ -30,7 +31,7 @@ func (h *Handler) Register(c echo.Context) error {
 		Role:     users.UserRole,
 	}
 
-	if err := h.authService.Register(c.Request().Context(), user, req.Pasword); err != nil {
+	if err := h.authService.Register(c.Request().Context(), user, req.Password); err != nil {
 		return err
 	}
 
@@ -38,7 +39,7 @@ func (h *Handler) Register(c echo.Context) error {
 }
 
 func (h *Handler) Login(c echo.Context) error {
-	req, err := echox.BindAndValidate[LoginRequest](c)
+	req, err := echox.BindAndValidate[contracts.LoginUserRequest](c)
 	if err != nil {
 		return err
 	}
@@ -52,18 +53,6 @@ func (h *Handler) Login(c echo.Context) error {
 		AccessToken: accessToken,
 	}
 	return c.JSON(http.StatusOK, response)
-}
-
-type RegisterRequest struct {
-	Username string `json:"username" validate:"nonzero,max=16"`
-	Email    string `json:"email" validate:"email"`
-	Pasword  string `json:"password" validate:"password"`
-	Role     string `json:"role" validate:"role"`
-}
-
-type LoginRequest struct {
-	Email    string `json:"email" validate:"email"`
-	Password string `json:"password"`
 }
 
 type LoginResponse struct {

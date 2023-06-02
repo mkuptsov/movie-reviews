@@ -2,25 +2,14 @@ package users
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
+	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
 	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
 	Service *Service
-}
-
-type UpdateRequest struct {
-	UserId int     `param:"userId" validate:"nonzero"`
-	Bio    *string `json:"bio"`
-}
-
-type UpdateUserRoleRequest struct {
-	UserId   int    `param:"userId" validate:"nonzero"`
-	RoleName string `param:"roleName" validate:"role"`
 }
 
 func NewHandler(service *Service) *Handler {
@@ -30,12 +19,11 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) GetUserById(c echo.Context) error {
-	idStr := c.Param("userId")
-	id, err := strconv.Atoi(idStr)
+	req, err := echox.BindAndValidate[contracts.GetUserByIdRequest](c)
 	if err != nil {
-		return apperrors.BadRequestHidden(err, "userId must be a number")
+		return err
 	}
-	user, err := h.Service.GetUserById(c.Request().Context(), id)
+	user, err := h.Service.GetUserById(c.Request().Context(), req.UserId)
 	if err != nil {
 		return err
 	}
@@ -43,14 +31,27 @@ func (h *Handler) GetUserById(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
-func (h *Handler) Delete(c echo.Context) error {
-	idStr := c.Param("userId")
-	id, err := strconv.Atoi(idStr)
+func (h *Handler) GetUserByUserName(c echo.Context) error {
+	req, err := echox.BindAndValidate[contracts.GetUserByUserNameRequest](c)
 	if err != nil {
-		return apperrors.BadRequestHidden(err, "userId must be a number")
+		return err
 	}
 
-	err = h.Service.Delete(c.Request().Context(), id)
+	user, err := h.Service.GetUserByUserName(c.Request().Context(), req.UserName)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, user)
+}
+
+func (h *Handler) DeleteUser(c echo.Context) error {
+	req, err := echox.BindAndValidate[contracts.DeleteUserRequest](c)
+	if err != nil {
+		return err
+	}
+
+	err = h.Service.DeleteUser(c.Request().Context(), req.UserId)
 	if err != nil {
 		return err
 	}
@@ -59,7 +60,7 @@ func (h *Handler) Delete(c echo.Context) error {
 }
 
 func (h *Handler) Update(c echo.Context) error {
-	req, err := echox.BindAndValidate[UpdateRequest](c)
+	req, err := echox.BindAndValidate[contracts.UpdateUserRequest](c)
 	if err != nil {
 		return err
 	}
@@ -73,12 +74,12 @@ func (h *Handler) Update(c echo.Context) error {
 }
 
 func (h *Handler) UpdateUserRole(c echo.Context) error {
-	req, err := echox.BindAndValidate[UpdateUserRoleRequest](c)
+	req, err := echox.BindAndValidate[contracts.UpdateUserRoleRequest](c)
 	if err != nil {
 		return err
 	}
 
-	err = h.Service.UpdateUserRole(c.Request().Context(), req.UserId, req.RoleName)
+	err = h.Service.UpdateUserRole(c.Request().Context(), req.UserId, req.Role)
 	if err != nil {
 		return err
 	}

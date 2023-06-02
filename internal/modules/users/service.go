@@ -36,8 +36,12 @@ func (s *Service) GetUserById(ctx context.Context, id int) (*User, error) {
 	return s.repo.GetUserById(ctx, id)
 }
 
-func (s *Service) Delete(ctx context.Context, id int) error {
-	err := s.repo.Delete(ctx, id)
+func (s *Service) GetUserByUserName(ctx context.Context, userName string) (*User, error) {
+	return s.repo.GetUserByUserName(ctx, userName)
+}
+
+func (s *Service) DeleteUser(ctx context.Context, id int) error {
+	err := s.repo.DeleteUser(ctx, id)
 	if err != nil {
 		return err
 	}
