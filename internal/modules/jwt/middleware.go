@@ -10,7 +10,7 @@ const (
 	tokenContexKey = "token"
 )
 
-func NewAuthMidlleware(secret string) echo.MiddlewareFunc {
+func NewAuthMiddleware(secret string) echo.MiddlewareFunc {
 	return echojwt.WithConfig(echojwt.Config{
 		ContextKey: tokenContexKey,
 		SigningKey: []byte(secret),

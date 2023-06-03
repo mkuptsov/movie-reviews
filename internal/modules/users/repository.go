@@ -20,7 +20,7 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) Create(ctx context.Context, user *UserWithPassword) error {
 	queryString := "INSERT INTO users (username, email, pass_hash, role) VALUES ($1, $2, $3, $4) returning id, created_at, role"
-	err := r.db.QueryRow(ctx, queryString, user.Username, user.Email, user.PasswordHash, user.Role).Scan(&user.Id, &user.CreatedAt, &user.Role)
+	err := r.db.QueryRow(ctx, queryString, user.Username, user.Email, user.PasswordHash, user.Role).Scan(&user.ID, &user.CreatedAt, &user.Role)
 
 	if dbx.IsUniqueViolation(err, "email") {
 		return apperrors.AlreadyExists("user", "email", user.Email)
@@ -46,7 +46,7 @@ func (r *Repository) GetUserWithPassword(ctx context.Context, email string) (*Us
 
 	row := r.db.QueryRow(ctx, queryString, email)
 	err := row.Scan(
-		&user.Id,
+		&user.ID,
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
@@ -74,7 +74,7 @@ func (r *Repository) GetUserById(ctx context.Context, id int) (*User, error) {
 
 	row := r.db.QueryRow(ctx, queryString, id)
 	err := row.Scan(
-		&user.Id,
+		&user.ID,
 		&user.Username,
 		&user.Email,
 		&user.Role,
@@ -91,7 +91,34 @@ func (r *Repository) GetUserById(ctx context.Context, id int) (*User, error) {
 	return &user, nil
 }
 
-func (r *Repository) Delete(ctx context.Context, id int) error {
+func (r *Repository) GetUserByUserName(ctx context.Context, userName string) (*User, error) {
+	queryString := `
+	SELECT id, username, email, role, created_at, deleted_at, bio
+	FROM users
+	WHERE username = $1 and deleted_at IS NULL;`
+
+	user := User{}
+
+	row := r.db.QueryRow(ctx, queryString, userName)
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Role,
+		&user.CreatedAt,
+		&user.DeletedAt,
+		&user.Bio,
+	)
+	if dbx.IsNoRows(err) {
+		return nil, apperrors.NotFound("user", "username", userName)
+	}
+	if err != nil {
+		return nil, apperrors.Internal(err)
+	}
+	return &user, nil
+}
+
+func (r *Repository) DeleteUser(ctx context.Context, id int) error {
 	queryString := "UPDATE users SET deleted_at = NOW() WHERE id = $1 and deleted_at IS NULL;"
 	cmdTag, err := r.db.Exec(ctx, queryString, id)
 	if err != nil {

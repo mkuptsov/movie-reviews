@@ -35,3 +35,7 @@ func NewConfig() (*Config, error) {
 	}
 	return &c, nil
 }
+
+func (cfg *AdminConfig) IsSet() bool {
+	return cfg.Email != "" && cfg.Password != "" && cfg.Username != ""
+}

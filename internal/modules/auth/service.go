@@ -50,7 +50,7 @@ func (s *Service) Login(ctx context.Context, email string, password string) (str
 		return "", apperrors.Internal(err)
 	}
 
-	accessToken, err := s.jwtService.GenerateToken(user.Id, user.Role)
+	accessToken, err := s.jwtService.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		return "", err
 	}
