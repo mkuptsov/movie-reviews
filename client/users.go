@@ -25,7 +25,6 @@ func (c *Client) GetUserByID(id int) (*contracts.User, error) {
 func (c *Client) UpdateUser(req *contracts.AuthenticatedRequest[*contracts.UpdateUserRequest]) error {
 	_, err := c.client.R().
 		SetAuthToken(req.AccessToken).
-		SetHeader("Content-Type", "application/json").
 		SetBody(req.Request).
 		Put(c.path("/api/users/%d", req.Request.UserId))
 
