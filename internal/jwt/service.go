@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )

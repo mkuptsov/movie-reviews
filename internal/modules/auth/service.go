@@ -3,8 +3,8 @@ package auth
 import (
 	"errors"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/jwt"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"

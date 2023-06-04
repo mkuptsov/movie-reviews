@@ -24,7 +24,7 @@ type UpdateUserRequest struct {
 type DeleteUserRequest struct {
 	UserId int `param:"userId" validate:"nonzero"`
 }
-type UpdateUserRoleRequest struct {
+type SetUserRoleRequest struct {
 	UserId int    `param:"userId" validate:"nonzero"`
 	Role   string `param:"role" validate:"role"`
 }

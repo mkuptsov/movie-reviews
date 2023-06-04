@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/jwt"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 )
 

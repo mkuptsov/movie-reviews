@@ -3,7 +3,7 @@ package users
 import (
 	"context"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
+	"github.com/cloudmachinery/movie-reviews/internal/log"
 )
 
 type Service struct {
@@ -56,8 +56,8 @@ func (s *Service) Update(ctx context.Context, id int, bio string) error {
 	return s.repo.Update(ctx, id, bio)
 }
 
-func (s *Service) UpdateUserRole(ctx context.Context, id int, roleName string) error {
-	err := s.repo.UpdateUserRole(ctx, id, roleName)
+func (s *Service) SetUserRole(ctx context.Context, id int, roleName string) error {
+	err := s.repo.SetUserRole(ctx, id, roleName)
 	if err != nil {
 		return err
 	}

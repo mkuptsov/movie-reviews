@@ -1,8 +1,8 @@
 package echox
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
+	"github.com/cloudmachinery/movie-reviews/internal/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/exp/slog"
 )
