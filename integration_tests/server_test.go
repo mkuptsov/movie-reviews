@@ -8,10 +8,7 @@ import (
 	"time"
 
 	"github.com/cloudmachinery/movie-reviews/client"
-	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/server"
 	"github.com/hashicorp/consul/sdk/testutil/retry"
 	"github.com/stretchr/testify/require"
@@ -66,178 +63,12 @@ func tests(t *testing.T, port int, cfg *config.Config) {
 	addr := fmt.Sprintf("http://localhost:%d", port)
 	c := client.New(addr)
 
-	t.Run("users.GetUserByUserName: admin", func(t *testing.T) {
-		u, err := c.GetUserByUserName(cfg.Admin.Username)
-		require.NoError(t, err)
-
-		require.Equal(t, cfg.Admin.Username, u.Username)
-		require.Equal(t, cfg.Admin.Email, u.Email)
-		require.Equal(t, users.AdminRole, u.Role)
-	})
-
-	t.Run("users.GetUserByUserName: not found", func(t *testing.T) {
-		_, err := c.GetUserByUserName("notfound")
-		requireNotFoundError(t, err, "user", "username", "notfound")
-	})
-
-	var (
-		johnDoe     *contracts.User
-		johnDoePass = standardPassword
-	)
-
-	t.Run("auth.Register: success", func(t *testing.T) {
-		req := &contracts.RegisterUserRequest{
-			Username: "johndoe",
-			Email:    "johndoe@example.com",
-			Password: johnDoePass,
-		}
-		u, err := c.RegisterUser(req)
-		require.NoError(t, err)
-		johnDoe = u
-
-		require.Equal(t, req.Username, u.Username)
-		require.Equal(t, req.Email, u.Email)
-		require.Equal(t, users.UserRole, u.Role)
-	})
-
-	t.Run("users.GetUserByID: success", func(t *testing.T) {
-		u, err := c.GetUserByID(johnDoe.ID)
-		require.NoError(t, err)
-
-		require.Equal(t, johnDoe.ID, u.ID)
-		require.Equal(t, johnDoe.Email, u.Email)
-	})
-
-	t.Run("users.GetUserByID: not found", func(t *testing.T) {
-		_, err := c.GetUserByID(fakeID)
-		requireNotFoundError(t, err, "user", "id", fakeID)
-	})
-
-	t.Run("auth.Register: short username", func(t *testing.T) {
-		req := &contracts.RegisterUserRequest{
-			Username: "joh",
-			Email:    "joh@example.com",
-			Password: standardPassword,
-		}
-		_, err := c.RegisterUser(req)
-		requireBadRequestError(t, err, "Username")
-	})
-
-	var johnDoeToken string
-	t.Run("auth.Login: success", func(t *testing.T) {
-		req := &contracts.LoginUserRequest{
-			Email:    johnDoe.Email,
-			Password: johnDoePass,
-		}
-		res, err := c.LoginUser(req)
-		require.NoError(t, err)
-		require.NotEmpty(t, res.AccessToken)
-		johnDoeToken = res.AccessToken
-	})
-
-	t.Run("users.UpdateUser: success", func(t *testing.T) {
-		bio := "I'm John Doe"
-		req := &contracts.UpdateUserRequest{
-			UserId: johnDoe.ID,
-			Bio:    &bio,
-		}
-		err := c.UpdateUser(contracts.NewAuthenticated(req, johnDoeToken))
-		require.NoError(t, err)
-	})
-
-	t.Run("users.UpdateUser: non-authenticated", func(t *testing.T) {
-		bio := "I'm John Doe"
-		req := &contracts.UpdateUserRequest{
-			UserId: johnDoe.ID,
-			Bio:    &bio,
-		}
-		err := c.UpdateUser(contracts.NewAuthenticated(req, ""))
-		requireUnauthorizedError(t, err, "invalid or missing token")
-	})
-
-	t.Run("users.UpdateUser: another user", func(t *testing.T) {
-		bio := "I'm John Doe"
-		req := &contracts.UpdateUserRequest{
-			UserId: johnDoe.ID + 1,
-			Bio:    &bio,
-		}
-		err := c.UpdateUser(contracts.NewAuthenticated(req, johnDoeToken))
-		requireForbiddenError(t, err, "insufficient permissions")
-	})
-
-	var adminToken string
-
-	t.Run("auth.Login: admin", func(t *testing.T) {
-		req := &contracts.LoginUserRequest{
-			Email:    cfg.Admin.Email,
-			Password: cfg.Admin.Password,
-		}
-		res, err := c.LoginUser(req)
-		require.NoError(t, err)
-		require.NotEmpty(t, res)
-		adminToken = res.AccessToken
-	})
-
-	t.Run("users.UpdateUserRole: success", func(t *testing.T) {
-		req := &contracts.UpdateUserRoleRequest{
-			UserId: johnDoe.ID,
-			Role:   "editor",
-		}
-
-		err := c.UpdateUserRole(contracts.NewAuthenticated(req, adminToken))
-		require.NoError(t, err)
-	})
-
-	t.Run("users.Delete: non-authenticated", func(t *testing.T) {
-		req := &contracts.DeleteUserRequest{
-			UserId: johnDoe.ID,
-		}
-		err := c.DeleteUser(contracts.NewAuthenticated(req, ""))
-		requireUnauthorizedError(t, err, "invalid or missing token")
-	})
-
-	t.Run("users.Delete: another user", func(t *testing.T) {
-		req := &contracts.DeleteUserRequest{
-			UserId: johnDoe.ID + 1,
-		}
-		err := c.DeleteUser(contracts.NewAuthenticated(req, johnDoeToken))
-		requireForbiddenError(t, err, "insufficient permissions")
-	})
-
-	t.Run("users.Delete: success", func(t *testing.T) {
-		req := &contracts.DeleteUserRequest{
-			UserId: johnDoe.ID,
-		}
-		err := c.DeleteUser(contracts.NewAuthenticated(req, johnDoeToken))
-		require.NoError(t, err)
-	})
-}
-
-const (
-	standardPassword = "secuR3P@ss"
-	fakeID           = 2147483647
-)
-
-func requireNotFoundError(t *testing.T, err error, subject, key string, value any) {
-	msg := apperrors.NotFound(subject, key, value).Error()
-	requireApiError(t, err, http.StatusNotFound, msg)
-}
-
-func requireUnauthorizedError(t *testing.T, err error, msg string) {
-	requireApiError(t, err, http.StatusUnauthorized, msg)
-}
-
-func requireForbiddenError(t *testing.T, err error, msg string) {
-	requireApiError(t, err, http.StatusForbidden, msg)
-}
-
-func requireBadRequestError(t *testing.T, err error, msg string) {
-	requireApiError(t, err, http.StatusBadRequest, msg)
-}
-
-func requireApiError(t *testing.T, err error, statusCode int, msg string) {
-	cerr, ok := err.(*client.Error)
-	require.True(t, ok, "expected client.Error")
-	require.Equal(t, statusCode, cerr.Code)
-	require.Contains(t, cerr.Message, msg)
+	// template for test names:
+	// [module].[client_method]: [expected result or condition]
+	// For example:
+	// auth.Login: wrong password
+	// users.GetUsers: success
+	authApiChecks(t, c, cfg)
+	usersApiChecks(t, c, cfg)
+	genresApiChecks(t, c)
 }
