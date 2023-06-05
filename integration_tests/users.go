@@ -98,7 +98,7 @@ func usersApiChecks(t *testing.T, c *client.Client, cfg *config.Config) {
 		require.Equal(t, users.EditorRole, johnDoe.Role)
 
 		// Have to re-login to become an editor
-		johnDoeToken = login(t, c, johnDoe.Email, johnDoePass)
+		johnDoeToken = login(t, c, johnDoe.Email, standardPassword)
 	})
 
 	t.Run("users.SetUserRole: bad role", func(t *testing.T) {

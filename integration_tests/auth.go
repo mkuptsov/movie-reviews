@@ -19,7 +19,6 @@ const (
 
 var (
 	johnDoe      *contracts.User // eventually going to be an editor
-	johnDoePass  = standardPassword
 	johnDoeToken string
 
 	adminToken string
@@ -30,7 +29,7 @@ func authApiChecks(t *testing.T, c *client.Client, cfg *config.Config) {
 		req := &contracts.RegisterUserRequest{
 			Username: "johndoe",
 			Email:    "johndoe@example.com",
-			Password: johnDoePass,
+			Password: standardPassword,
 		}
 		u, err := c.RegisterUser(req)
 		require.NoError(t, err)
@@ -74,7 +73,7 @@ func authApiChecks(t *testing.T, c *client.Client, cfg *config.Config) {
 	t.Run("auth.Login: success: John Doe", func(t *testing.T) {
 		req := &contracts.LoginUserRequest{
 			Email:    johnDoe.Email,
-			Password: johnDoePass,
+			Password: standardPassword,
 		}
 		res, err := c.LoginUser(req)
 		require.NoError(t, err)
@@ -96,7 +95,7 @@ func authApiChecks(t *testing.T, c *client.Client, cfg *config.Config) {
 	t.Run("auth.Login: wrong password", func(t *testing.T) {
 		req := &contracts.LoginUserRequest{
 			Email:    johnDoe.Email,
-			Password: johnDoePass + "wrong",
+			Password: standardPassword + "wrong",
 		}
 		_, err := c.LoginUser(req)
 		requireUnauthorizedError(t, err, "wrong password")
