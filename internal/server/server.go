@@ -7,12 +7,13 @@ import (
 	"net"
 	"time"
 
+	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/echox"
+	"github.com/cloudmachinery/movie-reviews/internal/jwt"
+	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/jwt"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,6 +53,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	jwtService := jwt.NewService(cfg.Jwt.Secret, cfg.Jwt.AccessExpiration)
 	usersModule := users.NewModule(db)
 	authModule := auth.NewModule(usersModule.Service, jwtService)
+	genresModule := genres.NewModule(db)
 
 	if err = createInitialAdminUser(cfg.Admin, authModule.Service); err != nil {
 		return nil, withClosers(closers, fmt.Errorf("create initial admin user: %w", err))
@@ -77,7 +79,15 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	api.GET("/users/username/:username", usersModule.Handler.GetUserByUserName)
 	api.PUT("/users/:userId", usersModule.Handler.Update, auth.Self)
 	api.DELETE("/users/:userId", usersModule.Handler.DeleteUser, auth.Self)
-	api.PUT("/users/:userId/role/:role", usersModule.Handler.UpdateUserRole, auth.Admin)
+	api.PUT("/users/:userId/role/:role", usersModule.Handler.SetUserRole, auth.Admin)
+
+	// Genres API routes
+
+	api.GET("/genres", genresModule.Handler.GetGenres)
+	api.GET("/genres/:id", genresModule.Handler.GetGenreByID)
+	api.POST("/genres", genresModule.Handler.CreateGenre)
+	api.PUT("/genres/:id", genresModule.Handler.UpdateGenre)
+	api.DELETE("/genres/:id", genresModule.Handler.DeleteGenre)
 
 	return &Server{e: e, cfg: cfg, closers: closers}, nil
 }

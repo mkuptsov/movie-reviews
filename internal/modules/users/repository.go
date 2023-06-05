@@ -3,8 +3,8 @@ package users
 import (
 	"context"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/dbx"
+	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/dbx"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -144,7 +144,7 @@ func (r *Repository) Update(ctx context.Context, id int, bio string) error {
 	return nil
 }
 
-func (r *Repository) UpdateUserRole(ctx context.Context, id int, roleName string) error {
+func (r *Repository) SetUserRole(ctx context.Context, id int, roleName string) error {
 	queryString := "UPDATE users SET role = $2 WHERE id = $1"
 	cmdTag, err := r.db.Exec(ctx, queryString, id, roleName)
 	if err != nil {

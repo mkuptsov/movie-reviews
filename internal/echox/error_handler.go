@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/log"
+	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
+	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/labstack/echo/v4"
 )
 

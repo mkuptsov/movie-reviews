@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/cloudmachinery/movie-reviews/contracts"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/echox"
+	"github.com/cloudmachinery/movie-reviews/internal/echox"
 	"github.com/labstack/echo/v4"
 )
 
@@ -73,13 +73,13 @@ func (h *Handler) Update(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *Handler) UpdateUserRole(c echo.Context) error {
-	req, err := echox.BindAndValidate[contracts.UpdateUserRoleRequest](c)
+func (h *Handler) SetUserRole(c echo.Context) error {
+	req, err := echox.BindAndValidate[contracts.SetUserRoleRequest](c)
 	if err != nil {
 		return err
 	}
 
-	err = h.Service.UpdateUserRole(c.Request().Context(), req.UserId, req.Role)
+	err = h.Service.SetUserRole(c.Request().Context(), req.UserId, req.Role)
 	if err != nil {
 		return err
 	}
