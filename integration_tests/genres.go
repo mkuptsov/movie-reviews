@@ -89,6 +89,15 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, req.Name, spooky.Name)
 	})
 
+	t.Run("genres.UpdateGenre: unauthorized", func(t *testing.T) {
+		req := &contracts.UpdateGenreRequest{
+			ID:   spooky.ID,
+			Name: "Horror",
+		}
+		err := c.UpdateGenre(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
+	})
+
 	t.Run("genres.UpdateGenre: not found", func(t *testing.T) {
 		nonExistingId := 1000
 		req := &contracts.UpdateGenreRequest{
@@ -108,6 +117,14 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 
 		spooky = getGenre(t, c, spooky.ID)
 		require.Nil(t, spooky)
+	})
+
+	t.Run("genres.DeleteGenre: unauthorized", func(t *testing.T) {
+		req := &contracts.DeleteGenreRequest{
+			ID: drama.ID,
+		}
+		err := c.DeleteGenre(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
 	})
 
 	t.Run("genres.GetGenres: two genres", func(t *testing.T) {

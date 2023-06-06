@@ -85,9 +85,9 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	api.GET("/genres", genresModule.Handler.GetGenres)
 	api.GET("/genres/:id", genresModule.Handler.GetGenreByID)
-	api.POST("/genres", genresModule.Handler.CreateGenre)
-	api.PUT("/genres/:id", genresModule.Handler.UpdateGenre)
-	api.DELETE("/genres/:id", genresModule.Handler.DeleteGenre)
+	api.POST("/genres", genresModule.Handler.CreateGenre, auth.Editor)
+	api.PUT("/genres/:id", genresModule.Handler.UpdateGenre, auth.Editor)
+	api.DELETE("/genres/:id", genresModule.Handler.DeleteGenre, auth.Editor)
 
 	return &Server{e: e, cfg: cfg, closers: closers}, nil
 }
