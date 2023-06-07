@@ -40,7 +40,9 @@ func SetupValidators() {
 	}
 }
 
+//nolint:revive // function requires param
 func password(v interface{}, param string) error {
+	// ...
 	s, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("password only validates strings")
@@ -58,7 +60,9 @@ func password(v interface{}, param string) error {
 	return nil
 }
 
+//nolint:revive // function requires param
 func email(v interface{}, param string) error {
+	// ...
 	s, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("email only validates strings")
@@ -75,7 +79,9 @@ func email(v interface{}, param string) error {
 	return nil
 }
 
+//nolint:revive // function requires param
 func role(v interface{}, param string) error {
+	// ...
 	s, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("role only validates strings")

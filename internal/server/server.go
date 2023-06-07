@@ -14,6 +14,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,7 +45,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	validation.SetupValidators()
 
 	var closers []func() error
-	db, err := getDb(ctx, cfg.DbUrl)
+	db, err := getDb(ctx, cfg.DbURL)
 	if err != nil {
 		return nil, fmt.Errorf("connect to db: %w", err)
 	}
@@ -54,6 +55,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	usersModule := users.NewModule(db)
 	authModule := auth.NewModule(usersModule.Service, jwtService)
 	genresModule := genres.NewModule(db)
+	starsModule := stars.NewModule(db)
 
 	if err = createInitialAdminUser(cfg.Admin, authModule.Service); err != nil {
 		return nil, withClosers(closers, fmt.Errorf("create initial admin user: %w", err))
@@ -75,7 +77,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	api.POST("/auth/login", authModule.Handler.Login)
 
 	// Users API routes
-	api.GET("/users/:userId", usersModule.Handler.GetUserById)
+	api.GET("/users/:userId", usersModule.Handler.GetUserByID)
 	api.GET("/users/username/:username", usersModule.Handler.GetUserByUserName)
 	api.PUT("/users/:userId", usersModule.Handler.Update, auth.Self)
 	api.DELETE("/users/:userId", usersModule.Handler.DeleteUser, auth.Self)
@@ -88,6 +90,11 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	api.POST("/genres", genresModule.Handler.CreateGenre, auth.Editor)
 	api.PUT("/genres/:id", genresModule.Handler.UpdateGenre, auth.Editor)
 	api.DELETE("/genres/:id", genresModule.Handler.DeleteGenre, auth.Editor)
+
+	// Star API
+
+	api.GET("/stars/:id", starsModule.Handler.GetStarByID)
+	api.POST("/stars", starsModule.Handler.CreateStar, auth.Editor)
 
 	return &Server{e: e, cfg: cfg, closers: closers}, nil
 }
