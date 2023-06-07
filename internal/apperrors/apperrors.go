@@ -24,7 +24,7 @@ var _ error = (*Error)(nil)
 type Error struct {
 	Code       Code
 	StackTrace string
-	IncidentId string
+	IncidentID string
 
 	innerErr error
 	hideErr  bool
@@ -64,7 +64,7 @@ func Internal(err error) *Error {
 
 func InternalWithoutStackTrace(err error) *Error {
 	appErr := newHiddenError(err, InternalCode, "internal error")
-	appErr.IncidentId = uuid.New().String()
+	appErr.IncidentID = uuid.New().String()
 	return appErr
 }
 

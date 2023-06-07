@@ -64,7 +64,7 @@ func (r *Repository) GetUserWithPassword(ctx context.Context, email string) (*Us
 	return &user, nil
 }
 
-func (r *Repository) GetUserById(ctx context.Context, id int) (*User, error) {
+func (r *Repository) GetUserByID(ctx context.Context, id int) (*User, error) {
 	queryString := `
 	SELECT id, username, email, role, created_at, deleted_at, bio
 	FROM users

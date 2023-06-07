@@ -18,12 +18,12 @@ func NewHandler(service *Service) *Handler {
 	}
 }
 
-func (h *Handler) GetUserById(c echo.Context) error {
-	req, err := echox.BindAndValidate[contracts.GetUserByIdRequest](c)
+func (h *Handler) GetUserByID(c echo.Context) error {
+	req, err := echox.BindAndValidate[contracts.GetUserByIDRequest](c)
 	if err != nil {
 		return err
 	}
-	user, err := h.Service.GetUserById(c.Request().Context(), req.UserId)
+	user, err := h.Service.GetUserByID(c.Request().Context(), req.UserID)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (h *Handler) DeleteUser(c echo.Context) error {
 		return err
 	}
 
-	err = h.Service.DeleteUser(c.Request().Context(), req.UserId)
+	err = h.Service.DeleteUser(c.Request().Context(), req.UserID)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (h *Handler) Update(c echo.Context) error {
 		return err
 	}
 
-	err = h.Service.Update(c.Request().Context(), req.UserId, *req.Bio)
+	err = h.Service.Update(c.Request().Context(), req.UserID, *req.Bio)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (h *Handler) SetUserRole(c echo.Context) error {
 		return err
 	}
 
-	err = h.Service.SetUserRole(c.Request().Context(), req.UserId, req.Role)
+	err = h.Service.SetUserRole(c.Request().Context(), req.UserID, req.Role)
 	if err != nil {
 		return err
 	}

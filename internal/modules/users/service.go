@@ -32,8 +32,8 @@ func (s *Service) GetUserWithPassword(ctx context.Context, email string) (*UserW
 	return s.repo.GetUserWithPassword(ctx, email)
 }
 
-func (s *Service) GetUserById(ctx context.Context, id int) (*User, error) {
-	return s.repo.GetUserById(ctx, id)
+func (s *Service) GetUserByID(ctx context.Context, id int) (*User, error) {
+	return s.repo.GetUserByID(ctx, id)
 }
 
 func (s *Service) GetUserByUserName(ctx context.Context, userName string) (*User, error) {

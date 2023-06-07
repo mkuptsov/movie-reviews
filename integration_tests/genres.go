@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func genresApiChecks(t *testing.T, c *client.Client) {
+func genresAPIChecks(t *testing.T, c *client.Client) {
 	t.Run("genres.GetGenres: empty", func(t *testing.T) {
 		genres, err := c.GetGenres()
 		require.NoError(t, err)
@@ -65,16 +65,16 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 	})
 
 	t.Run("genres.GetGenre: success", func(t *testing.T) {
-		g, err := c.GetGenreById(spooky.ID)
+		g, err := c.GetGenreByID(spooky.ID)
 
 		require.NoError(t, err)
 		require.Equal(t, spooky, g)
 	})
 
 	t.Run("genres.GetGenre: not found", func(t *testing.T) {
-		nonExistingId := 1000
-		_, err := c.GetGenreById(nonExistingId)
-		requireNotFoundError(t, err, "genre", "id", nonExistingId)
+		nonExistingID := 1000
+		_, err := c.GetGenreByID(nonExistingID)
+		requireNotFoundError(t, err, "genre", "id", nonExistingID)
 	})
 
 	t.Run("genres.UpdateGenre: success", func(t *testing.T) {
@@ -99,13 +99,13 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 	})
 
 	t.Run("genres.UpdateGenre: not found", func(t *testing.T) {
-		nonExistingId := 1000
+		nonExistingID := 1000
 		req := &contracts.UpdateGenreRequest{
-			ID:   nonExistingId,
+			ID:   nonExistingID,
 			Name: "Horror",
 		}
 		err := c.UpdateGenre(contracts.NewAuthenticated(req, johnDoeToken))
-		requireNotFoundError(t, err, "genre", "id", nonExistingId)
+		requireNotFoundError(t, err, "genre", "id", nonExistingID)
 	})
 
 	t.Run("genres.DeleteGenre: success", func(t *testing.T) {
@@ -135,7 +135,7 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 }
 
 func getGenre(t *testing.T, c *client.Client, id int) *contracts.Genre {
-	u, err := c.GetGenreById(id)
+	u, err := c.GetGenreByID(id)
 	if err != nil {
 		cerr, ok := err.(*client.Error)
 		require.True(t, ok)

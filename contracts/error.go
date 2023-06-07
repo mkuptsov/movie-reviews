@@ -1,6 +1,6 @@
 package contracts
 
-type HttpError struct {
+type HTTPError struct {
 	Message    string `json:"message"`
-	IncidentId string `json:"incident_id,omitempty"`
+	IncidentID string `json:"incident_id,omitempty"`
 }
