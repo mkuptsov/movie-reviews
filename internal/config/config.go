@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	DbUrl    string      `env:"DB_URL"`
+	DbURL    string      `env:"DB_URL"`
 	Port     int         `env:"PORT" envDefault:"8080"`
 	Jwt      JwtConfig   `envPrefix:"JWT_"`
 	Admin    AdminConfig `envPrefix:"ADMIN_"`

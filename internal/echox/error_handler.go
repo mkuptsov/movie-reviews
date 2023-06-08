@@ -9,9 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type HttpError struct {
+type HTTPError struct {
 	Message    string `json:"message"`
-	IncidentId string `json:"incident_id,omitempty"`
+	IncidentID string `json:"incident_id,omitempty"`
 }
 
 func ErrorHandler(err error, c echo.Context) {
@@ -24,9 +24,9 @@ func ErrorHandler(err error, c echo.Context) {
 		appError = apperrors.InternalWithoutStackTrace(err)
 	}
 
-	httpError := HttpError{
+	httpError := HTTPError{
 		Message:    appError.SafeError(),
-		IncidentId: appError.IncidentId,
+		IncidentID: appError.IncidentID,
 	}
 
 	logger := log.FromContext(c.Request().Context())
@@ -34,20 +34,20 @@ func ErrorHandler(err error, c echo.Context) {
 	if appError.Code == apperrors.InternalCode {
 		logger.Error("server error",
 			"message", err.Error(),
-			"incidentId", appError.IncidentId,
+			"incidentId", appError.IncidentID,
 			"stack trace", appError.StackTrace)
 	} else {
 		logger.Warn("client error",
 			"message", err.Error())
 	}
 
-	if err = c.JSON(toHttpStatus(appError.Code), httpError); err != nil {
+	if err = c.JSON(toHTTPStatus(appError.Code), httpError); err != nil {
 		logger.Error("server error",
 			"message", err.Error())
 	}
 }
 
-func toHttpStatus(code apperrors.Code) int {
+func toHTTPStatus(code apperrors.Code) int {
 	switch code {
 	case apperrors.InternalCode:
 		return http.StatusInternalServerError

@@ -19,7 +19,7 @@ func New(url string) *Client {
 	rc := resty.NewWithClient(hc)
 	rc.OnAfterResponse(func(client *resty.Client, response *resty.Response) error {
 		if response.IsError() {
-			herr := contracts.HttpError{}
+			herr := contracts.HTTPError{}
 			_ = json.Unmarshal(response.Body(), &herr)
 
 			return &Error{Code: response.StatusCode(), Message: herr.Message}

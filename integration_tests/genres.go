@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func genresApiChecks(t *testing.T, c *client.Client) {
+func genresAPIChecks(t *testing.T, c *client.Client) {
 	t.Run("genres.GetGenres: empty", func(t *testing.T) {
 		genres, err := c.GetGenres()
 		require.NoError(t, err)
@@ -65,16 +65,16 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 	})
 
 	t.Run("genres.GetGenre: success", func(t *testing.T) {
-		g, err := c.GetGenreById(spooky.ID)
+		g, err := c.GetGenreByID(spooky.ID)
 
 		require.NoError(t, err)
 		require.Equal(t, spooky, g)
 	})
 
 	t.Run("genres.GetGenre: not found", func(t *testing.T) {
-		nonExistingId := 1000
-		_, err := c.GetGenreById(nonExistingId)
-		requireNotFoundError(t, err, "genre", "id", nonExistingId)
+		nonExistingID := 1000
+		_, err := c.GetGenreByID(nonExistingID)
+		requireNotFoundError(t, err, "genre", "id", nonExistingID)
 	})
 
 	t.Run("genres.UpdateGenre: success", func(t *testing.T) {
@@ -89,14 +89,23 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, req.Name, spooky.Name)
 	})
 
-	t.Run("genres.UpdateGenre: not found", func(t *testing.T) {
-		nonExistingId := 1000
+	t.Run("genres.UpdateGenre: unauthorized", func(t *testing.T) {
 		req := &contracts.UpdateGenreRequest{
-			ID:   nonExistingId,
+			ID:   spooky.ID,
+			Name: "Horror",
+		}
+		err := c.UpdateGenre(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
+	})
+
+	t.Run("genres.UpdateGenre: not found", func(t *testing.T) {
+		nonExistingID := 1000
+		req := &contracts.UpdateGenreRequest{
+			ID:   nonExistingID,
 			Name: "Horror",
 		}
 		err := c.UpdateGenre(contracts.NewAuthenticated(req, johnDoeToken))
-		requireNotFoundError(t, err, "genre", "id", nonExistingId)
+		requireNotFoundError(t, err, "genre", "id", nonExistingID)
 	})
 
 	t.Run("genres.DeleteGenre: success", func(t *testing.T) {
@@ -110,6 +119,14 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 		require.Nil(t, spooky)
 	})
 
+	t.Run("genres.DeleteGenre: unauthorized", func(t *testing.T) {
+		req := &contracts.DeleteGenreRequest{
+			ID: drama.ID,
+		}
+		err := c.DeleteGenre(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
+	})
+
 	t.Run("genres.GetGenres: two genres", func(t *testing.T) {
 		genres, err := c.GetGenres()
 		require.NoError(t, err)
@@ -118,7 +135,7 @@ func genresApiChecks(t *testing.T, c *client.Client) {
 }
 
 func getGenre(t *testing.T, c *client.Client, id int) *contracts.Genre {
-	u, err := c.GetGenreById(id)
+	u, err := c.GetGenreByID(id)
 	if err != nil {
 		cerr, ok := err.(*client.Error)
 		require.True(t, ok)

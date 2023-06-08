@@ -14,7 +14,7 @@ import (
 
 const (
 	standardPassword = "secuR3P@ss"
-	fakeUserID       = 2147483647
+	fakeID           = 2147483647
 )
 
 var (
@@ -24,7 +24,7 @@ var (
 	adminToken string
 )
 
-func authApiChecks(t *testing.T, c *client.Client, cfg *config.Config) {
+func authAPIChecks(t *testing.T, c *client.Client, cfg *config.Config) {
 	t.Run("auth.Register: success", func(t *testing.T) {
 		req := &contracts.RegisterUserRequest{
 			Username: "johndoe",

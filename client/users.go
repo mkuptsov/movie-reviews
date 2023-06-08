@@ -26,7 +26,7 @@ func (c *Client) UpdateUser(req *contracts.AuthenticatedRequest[*contracts.Updat
 	_, err := c.client.R().
 		SetAuthToken(req.AccessToken).
 		SetBody(req.Request).
-		Put(c.path("/api/users/%d", req.Request.UserId))
+		Put(c.path("/api/users/%d", req.Request.UserID))
 
 	return err
 }
@@ -34,7 +34,7 @@ func (c *Client) UpdateUser(req *contracts.AuthenticatedRequest[*contracts.Updat
 func (c *Client) DeleteUser(req *contracts.AuthenticatedRequest[*contracts.DeleteUserRequest]) error {
 	_, err := c.client.R().
 		SetAuthToken(req.AccessToken).
-		Delete(c.path("/api/users/%d", req.Request.UserId))
+		Delete(c.path("/api/users/%d", req.Request.UserID))
 
 	return err
 }
@@ -42,7 +42,7 @@ func (c *Client) DeleteUser(req *contracts.AuthenticatedRequest[*contracts.Delet
 func (c *Client) SetUserRole(req *contracts.AuthenticatedRequest[*contracts.SetUserRoleRequest]) error {
 	_, err := c.client.R().
 		SetAuthToken(req.AccessToken).
-		Put(c.path("/api/users/%d/role/%s", req.Request.UserId, req.Request.Role))
+		Put(c.path("/api/users/%d/role/%s", req.Request.UserID, req.Request.Role))
 
 	return err
 }

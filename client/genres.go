@@ -26,7 +26,7 @@ func (c *Client) CreateGenre(req *contracts.AuthenticatedRequest[*contracts.Crea
 	return &genre, err
 }
 
-func (c *Client) GetGenreById(id int) (*contracts.Genre, error) {
+func (c *Client) GetGenreByID(id int) (*contracts.Genre, error) {
 	var genre contracts.Genre
 
 	_, err := c.client.R().
