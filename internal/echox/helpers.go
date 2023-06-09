@@ -9,7 +9,7 @@ import (
 func BindAndValidate[T any](c echo.Context) (*T, error) {
 	req := new(T)
 	if err := c.Bind(req); err != nil {
-		return nil, apperrors.BadRequestHidden(err, "invalid or malformed requset")
+		return nil, apperrors.BadRequestHidden(err, "invalid or malformed request")
 	}
 
 	if err := validator.Validate(req); err != nil {

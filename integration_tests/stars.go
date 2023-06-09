@@ -85,4 +85,97 @@ func starsAPIChecks(t *testing.T, c *client.Client) {
 		_, err := c.GetStarByID(fakeID)
 		requireNotFoundError(t, err, "star", "id", fakeID)
 	})
+
+	t.Run("stars.GetAll: success", func(t *testing.T) {
+		req := contracts.GetStarsRequest{}
+		res, err := c.GetStars(&req)
+		require.NoError(t, err)
+
+		require.Equal(t, 3, res.Total)
+		require.Equal(t, 1, res.Page)
+		require.Equal(t, testPaginationSize, res.Size)
+		require.Equal(t, []*contracts.Star{lucas, hamill}, res.Items)
+
+		req.Page = res.Page + 1
+		res, err = c.GetStars(&req)
+		require.NoError(t, err)
+
+		require.Equal(t, 3, res.Total)
+		require.Equal(t, 2, req.Page)
+		require.Equal(t, testPaginationSize, res.Size)
+		require.Equal(t, []*contracts.Star{mcgregor}, res.Items)
+	})
+
+	t.Run("stars.Update: success", func(t *testing.T) {
+		req := &contracts.UpdateStarRequest{
+			ID:         mcgregor.ID,
+			FirstName:  mcgregor.FirstName,
+			MiddleName: mcgregor.MiddleName,
+			LastName:   mcgregor.LastName,
+			BirthDate:  mcgregor.BirthDate,
+			BirthPlace: mcgregor.BirthPlace,
+			Bio:        contracts.Ptr("Updated bio"),
+		}
+		err := c.UpdateStar(contracts.NewAuthenticated(req, johnDoeToken))
+		require.NoError(t, err)
+
+		res, err := c.GetStarByID(mcgregor.ID)
+		require.NoError(t, err)
+		require.Equal(t, *req.Bio, *res.Bio)
+	})
+
+	t.Run("stars.Update: unathorized", func(t *testing.T) {
+		req := &contracts.UpdateStarRequest{
+			ID:         mcgregor.ID,
+			FirstName:  mcgregor.FirstName,
+			MiddleName: mcgregor.MiddleName,
+			LastName:   mcgregor.LastName,
+			BirthDate:  mcgregor.BirthDate,
+			BirthPlace: mcgregor.BirthPlace,
+			Bio:        contracts.Ptr("Updated bio"),
+		}
+		err := c.UpdateStar(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
+	})
+
+	t.Run("stars.Update: not found", func(t *testing.T) {
+		req := &contracts.UpdateStarRequest{
+			ID:         fakeID,
+			FirstName:  mcgregor.FirstName,
+			MiddleName: mcgregor.MiddleName,
+			LastName:   mcgregor.LastName,
+			BirthDate:  mcgregor.BirthDate,
+			BirthPlace: mcgregor.BirthPlace,
+			Bio:        contracts.Ptr("Updated bio"),
+		}
+		err := c.UpdateStar(contracts.NewAuthenticated(req, johnDoeToken))
+		requireNotFoundError(t, err, "star", "id", fakeID)
+	})
+
+	t.Run("stars.Delete: unauthorized", func(t *testing.T) {
+		req := &contracts.DeleteStarRequest{
+			ID: mcgregor.ID,
+		}
+		err := c.DeleteStar(contracts.NewAuthenticated(req, ""))
+		requireUnauthorizedError(t, err, "invalid or missing token")
+	})
+
+	t.Run("stars.Delete: not found", func(t *testing.T) {
+		req := &contracts.DeleteStarRequest{
+			ID: fakeID,
+		}
+		err := c.DeleteStar(contracts.NewAuthenticated(req, johnDoeToken))
+		requireNotFoundError(t, err, "star", "id", fakeID)
+	})
+
+	t.Run("stars.Delete: success", func(t *testing.T) {
+		req := &contracts.DeleteStarRequest{
+			ID: mcgregor.ID,
+		}
+		err := c.DeleteStar(contracts.NewAuthenticated(req, johnDoeToken))
+		require.NoError(t, err)
+
+		_, err = c.GetStarByID(mcgregor.ID)
+		requireNotFoundError(t, err, "star", "id", mcgregor.ID)
+	})
 }

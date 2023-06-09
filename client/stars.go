@@ -23,3 +23,31 @@ func (c *Client) GetStarByID(id int) (*contracts.Star, error) {
 
 	return &star, err
 }
+
+func (c *Client) GetStars(req *contracts.GetStarsRequest) (*contracts.PaginatedResponse[contracts.Star], error) {
+	var res contracts.PaginatedResponse[contracts.Star]
+
+	_, err := c.client.R().
+		SetResult(&res).
+		SetQueryParams(req.PaginatiedRequest.ToQueryParams()).
+		Get(c.path("/api/stars"))
+
+	return &res, err
+}
+
+func (c *Client) UpdateStar(req *contracts.AuthenticatedRequest[*contracts.UpdateStarRequest]) error {
+	_, err := c.client.R().
+		SetAuthToken(req.AccessToken).
+		SetBody(req.Request).
+		Put(c.path("/api/stars/%d", req.Request.ID))
+
+	return err
+}
+
+func (c *Client) DeleteStar(req *contracts.AuthenticatedRequest[*contracts.DeleteStarRequest]) error {
+	_, err := c.client.R().
+		SetAuthToken(req.AccessToken).
+		Delete(c.path("/api/stars/%d", req.Request.ID))
+
+	return err
+}
