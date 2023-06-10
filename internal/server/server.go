@@ -55,7 +55,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	usersModule := users.NewModule(db)
 	authModule := auth.NewModule(usersModule.Service, jwtService)
 	genresModule := genres.NewModule(db)
-	starsModule := stars.NewModule(db)
+	starsModule := stars.NewModule(db, cfg.Pagination)
 
 	if err = createInitialAdminUser(cfg.Admin, authModule.Service); err != nil {
 		return nil, withClosers(closers, fmt.Errorf("create initial admin user: %w", err))
@@ -94,7 +94,10 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	// Star API
 
 	api.GET("/stars/:id", starsModule.Handler.GetStarByID)
+	api.GET("/stars", starsModule.Handler.GetAll)
 	api.POST("/stars", starsModule.Handler.CreateStar, auth.Editor)
+	api.PUT("/stars/:id", starsModule.Handler.UpdateStar, auth.Editor)
+	api.DELETE("/stars/:id", starsModule.Handler.DeleteStar, auth.Editor)
 
 	return &Server{e: e, cfg: cfg, closers: closers}, nil
 }

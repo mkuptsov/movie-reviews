@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/cloudmachinery/movie-reviews/client"
 	"github.com/cloudmachinery/movie-reviews/internal/config"
@@ -19,21 +18,7 @@ func TestServer(t *testing.T) {
 }
 
 func runServer(t *testing.T, pgConnString string) {
-	cfg := &config.Config{
-		DbURL: pgConnString,
-		Port:  0, // random port
-		Jwt: config.JwtConfig{
-			Secret:           "secret",
-			AccessExpiration: time.Minute * 15,
-		},
-		Admin: config.AdminConfig{
-			Username: "admin",
-			Password: "&dm1Npa$$",
-			Email:    "admin@mail.com",
-		},
-		Local:    true,
-		LogLevel: "error",
-	}
+	cfg := getConfig(pgConnString)
 
 	srv, err := server.New(context.Background(), cfg)
 	require.NoError(t, err)
