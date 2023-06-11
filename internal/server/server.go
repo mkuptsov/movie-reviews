@@ -14,6 +14,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/auth"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/movies"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/cloudmachinery/movie-reviews/internal/validation"
@@ -56,6 +57,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	authModule := auth.NewModule(usersModule.Service, jwtService)
 	genresModule := genres.NewModule(db)
 	starsModule := stars.NewModule(db, cfg.Pagination)
+	moviesModule := movies.NewModule(db, cfg.Pagination)
 
 	if err = createInitialAdminUser(cfg.Admin, authModule.Service); err != nil {
 		return nil, withClosers(closers, fmt.Errorf("create initial admin user: %w", err))
@@ -91,13 +93,21 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	api.PUT("/genres/:id", genresModule.Handler.UpdateGenre, auth.Editor)
 	api.DELETE("/genres/:id", genresModule.Handler.DeleteGenre, auth.Editor)
 
-	// Star API
+	// Stars API
 
 	api.GET("/stars/:id", starsModule.Handler.GetStarByID)
 	api.GET("/stars", starsModule.Handler.GetAll)
 	api.POST("/stars", starsModule.Handler.CreateStar, auth.Editor)
 	api.PUT("/stars/:id", starsModule.Handler.UpdateStar, auth.Editor)
 	api.DELETE("/stars/:id", starsModule.Handler.DeleteStar, auth.Editor)
+
+	// Movies API
+
+	api.GET("/movies/:id", moviesModule.Handler.GetMovieByID)
+	api.GET("/movies", moviesModule.Handler.GetAll)
+	api.POST("/movies", moviesModule.Handler.CreateMovie, auth.Editor)
+	api.PUT("/movies/:id", moviesModule.Handler.UpdateMovie, auth.Editor)
+	api.DELETE("/movies/:id", moviesModule.Handler.DeleteMovie, auth.Editor)
 
 	return &Server{e: e, cfg: cfg, closers: closers}, nil
 }

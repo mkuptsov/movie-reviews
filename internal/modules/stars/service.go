@@ -16,7 +16,7 @@ func NewService(repo *Repository) *Service {
 	}
 }
 
-func (s *Service) CreateStar(ctx context.Context, star *Star) error {
+func (s *Service) CreateStar(ctx context.Context, star *StarDetails) error {
 	err := s.repo.CreateStar(ctx, star)
 	if err != nil {
 		return nil
@@ -30,7 +30,7 @@ func (s *Service) CreateStar(ctx context.Context, star *Star) error {
 	return nil
 }
 
-func (s *Service) GetStarByID(ctx context.Context, id int) (*Star, error) {
+func (s *Service) GetStarByID(ctx context.Context, id int) (*StarDetails, error) {
 	return s.repo.GetStarByID(ctx, id)
 }
 
@@ -38,7 +38,7 @@ func (s *Service) GetAllPaginated(ctx context.Context, offset, limit int) ([]*St
 	return s.repo.GetAllPaginated(ctx, offset, limit)
 }
 
-func (s *Service) UpdateStar(ctx context.Context, id int, star *Star) error {
+func (s *Service) UpdateStar(ctx context.Context, id int, star *StarDetails) error {
 	err := s.repo.UpdateStar(ctx, id, star)
 	if err != nil {
 		return err

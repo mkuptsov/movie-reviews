@@ -10,12 +10,12 @@ import (
 )
 
 func starsAPIChecks(t *testing.T, c *client.Client) {
-	var lucas, hamill, mcgregor *contracts.Star
+	var lucas, hamill, mcgregor *contracts.StarDetails
 
 	t.Run("stars.Create: success", func(t *testing.T) {
 		cases := []struct {
 			req  *contracts.CreateStarRequest
-			addr **contracts.Star
+			addr **contracts.StarDetails
 		}{
 			{
 				req: &contracts.CreateStarRequest{
@@ -94,7 +94,7 @@ func starsAPIChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, 3, res.Total)
 		require.Equal(t, 1, res.Page)
 		require.Equal(t, testPaginationSize, res.Size)
-		require.Equal(t, []*contracts.Star{lucas, hamill}, res.Items)
+		require.Equal(t, []*contracts.Star{&lucas.Star, &hamill.Star}, res.Items)
 
 		req.Page = res.Page + 1
 		res, err = c.GetStars(&req)
@@ -103,7 +103,7 @@ func starsAPIChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, 3, res.Total)
 		require.Equal(t, 2, req.Page)
 		require.Equal(t, testPaginationSize, res.Size)
-		require.Equal(t, []*contracts.Star{mcgregor}, res.Items)
+		require.Equal(t, []*contracts.Star{&mcgregor.Star}, res.Items)
 	})
 
 	t.Run("stars.Update: success", func(t *testing.T) {

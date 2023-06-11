@@ -19,7 +19,7 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 	}
 }
 
-func (r *Repository) CreateStar(ctx context.Context, star *Star) error {
+func (r *Repository) CreateStar(ctx context.Context, star *StarDetails) error {
 	queryString := `
 	INSERT INTO stars 
 	(first_name, middle_name, last_name, birth_date, birth_place, death_date, bio) 
@@ -49,13 +49,13 @@ func (r *Repository) CreateStar(ctx context.Context, star *Star) error {
 	return nil
 }
 
-func (r *Repository) GetStarByID(ctx context.Context, id int) (*Star, error) {
+func (r *Repository) GetStarByID(ctx context.Context, id int) (*StarDetails, error) {
 	queryString := `
 	SELECT id, first_name, middle_name, last_name, birth_date, birth_place, death_date, bio, created_at, deleted_at
 	FROM stars
 	WHERE id = $1 and deleted_at IS NULL;`
 
-	star := Star{}
+	star := StarDetails{}
 
 	row := r.db.QueryRow(ctx, queryString, id)
 	err := row.Scan(
@@ -82,7 +82,7 @@ func (r *Repository) GetStarByID(ctx context.Context, id int) (*Star, error) {
 
 func (r *Repository) GetAllPaginated(ctx context.Context, offset, limit int) ([]*Star, int, error) {
 	queryPage := `
-	SELECT id, first_name, middle_name, last_name, birth_date, birth_place, death_date, bio, created_at, deleted_at
+	SELECT id, first_name, last_name, birth_date, death_date, created_at, deleted_at
 	FROM stars
 	WHERE deleted_at IS NULL
 	ORDER BY id
@@ -109,12 +109,9 @@ func (r *Repository) GetAllPaginated(ctx context.Context, offset, limit int) ([]
 		err = rows.Scan(
 			&star.ID,
 			&star.FirstName,
-			&star.MiddleName,
 			&star.LastName,
 			&star.BirthDate,
-			&star.BirthPlace,
 			&star.DeathDate,
-			&star.Bio,
 			&star.CreatedAt,
 			&star.DeletedAt,
 		)
@@ -134,7 +131,7 @@ func (r *Repository) GetAllPaginated(ctx context.Context, offset, limit int) ([]
 	return stars, total, nil
 }
 
-func (r *Repository) UpdateStar(ctx context.Context, id int, star *Star) error {
+func (r *Repository) UpdateStar(ctx context.Context, id int, star *StarDetails) error {
 	queryString := `
 	UPDATE stars 
 	SET 

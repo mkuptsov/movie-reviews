@@ -2,8 +2,8 @@ package client
 
 import "github.com/cloudmachinery/movie-reviews/contracts"
 
-func (c *Client) CreateStar(req *contracts.AuthenticatedRequest[*contracts.CreateStarRequest]) (*contracts.Star, error) {
-	var star contracts.Star
+func (c *Client) CreateStar(req *contracts.AuthenticatedRequest[*contracts.CreateStarRequest]) (*contracts.StarDetails, error) {
+	var star contracts.StarDetails
 
 	_, err := c.client.R().
 		SetResult(&star).
@@ -14,8 +14,8 @@ func (c *Client) CreateStar(req *contracts.AuthenticatedRequest[*contracts.Creat
 	return &star, err
 }
 
-func (c *Client) GetStarByID(id int) (*contracts.Star, error) {
-	var star contracts.Star
+func (c *Client) GetStarByID(id int) (*contracts.StarDetails, error) {
+	var star contracts.StarDetails
 
 	_, err := c.client.R().
 		SetResult(&star).
