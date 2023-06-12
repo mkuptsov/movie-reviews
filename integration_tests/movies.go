@@ -157,7 +157,7 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 			Version:     0,
 		}
 		err := c.UpdateMovie(contracts.NewAuthenticated(req, johnDoeToken))
-		requireVersionMissmatch(t, err, "movie", "id", req.ID, req.Version)
+		requireVersionMismatch(t, err, "movie", "id", req.ID, req.Version)
 	})
 
 	t.Run("movies.Delete: unauthorized", func(t *testing.T) {

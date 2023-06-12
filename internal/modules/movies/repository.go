@@ -148,7 +148,7 @@ func (r *Repository) UpdateMovie(ctx context.Context, id int, movie *MovieDetail
 		if err != nil {
 			return err
 		}
-		return apperrors.VersionMissmatch("movie", "id", id, movie.Version)
+		return apperrors.VersionMismatch("movie", "id", id, movie.Version)
 	}
 
 	return nil

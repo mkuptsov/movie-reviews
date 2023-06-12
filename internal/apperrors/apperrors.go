@@ -17,7 +17,7 @@ const (
 	AlreadyExistsCode
 	UnauthorizedCode
 	ForbiddenCode
-	VersionMissmatchCode
+	VersionMismatchCode
 )
 
 var _ error = (*Error)(nil)
@@ -77,8 +77,8 @@ func BadRequestHidden(err error, message string) *Error {
 	return newHiddenError(err, BadRequestCode, message)
 }
 
-func VersionMissmatch(subject, key string, value any, version int) *Error {
-	return newError(VersionMissmatchCode, fmt.Sprintf("stale version %d for %s %s:%v", version, subject, key, value))
+func VersionMismatch(subject, key string, value any, version int) *Error {
+	return newError(VersionMismatchCode, fmt.Sprintf("stale version %d for %s %s:%v", version, subject, key, value))
 }
 
 func NotFound(subject, key string, value any) *Error {

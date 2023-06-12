@@ -31,8 +31,8 @@ func requireBadRequestError(t *testing.T, err error, msg string) {
 	requireAPIError(t, err, http.StatusBadRequest, msg)
 }
 
-func requireVersionMissmatch(t *testing.T, err error, subject, key string, value any, version int) {
-	msg := apperrors.VersionMissmatch(subject, key, value, version).Error()
+func requireVersionMismatch(t *testing.T, err error, subject, key string, value any, version int) {
+	msg := apperrors.VersionMismatch(subject, key, value, version).Error()
 	requireAPIError(t, err, http.StatusConflict, msg)
 }
 

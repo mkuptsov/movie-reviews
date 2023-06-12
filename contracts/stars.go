@@ -38,7 +38,7 @@ type GetStarsRequest struct {
 }
 
 type UpdateStarRequest struct {
-	ID         int        `json:"id" validate:"nonzero"`
+	ID         int        `param:"id" validate:"nonzero"`
 	FirstName  string     `json:"first_name" validate:"min=1,max=50"`
 	MiddleName *string    `json:"middle_name,omitempty" validate:"max=50"`
 	LastName   string     `json:"last_name" validate:"min=1,max=50"`

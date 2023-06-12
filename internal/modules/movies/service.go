@@ -24,7 +24,7 @@ func (s *Service) CreateMovie(ctx context.Context, movie *MovieDetails) error {
 
 	logger := log.FromContext(ctx)
 	logger.Info("movie created",
-		"movie_title", movie.Title)
+		"movie_id", movie.ID)
 
 	return nil
 }
@@ -45,7 +45,7 @@ func (s *Service) UpdateMovie(ctx context.Context, id int, movie *MovieDetails) 
 
 	logger := log.FromContext(ctx)
 	logger.Info("movie updated",
-		"movie_title", movie.Title)
+		"movie_id", id)
 
 	return nil
 }
