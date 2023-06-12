@@ -28,13 +28,15 @@ func (h *Handler) CreateStar(c echo.Context) error {
 		return err
 	}
 
-	star := &Star{
-		FirstName:  req.FirstName,
+	star := &StarDetails{
+		Star: Star{
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			BirthDate: req.BirthDate,
+			DeathDate: req.DeathDate,
+		},
 		MiddleName: req.MiddleName,
-		LastName:   req.LastName,
-		BirthDate:  req.BirthDate,
 		BirthPlace: req.BirthPlace,
-		DeathDate:  req.DeathDate,
 		Bio:        req.Bio,
 	}
 
@@ -83,13 +85,15 @@ func (h *Handler) UpdateStar(c echo.Context) error {
 		return err
 	}
 
-	star := &Star{
-		FirstName:  req.FirstName,
+	star := &StarDetails{
+		Star: Star{
+			FirstName: req.FirstName,
+			LastName:  req.LastName,
+			BirthDate: req.BirthDate,
+			DeathDate: req.DeathDate,
+		},
 		MiddleName: req.MiddleName,
-		LastName:   req.LastName,
-		BirthDate:  req.BirthDate,
 		BirthPlace: req.BirthPlace,
-		DeathDate:  req.DeathDate,
 		Bio:        req.Bio,
 	}
 	id := req.ID
