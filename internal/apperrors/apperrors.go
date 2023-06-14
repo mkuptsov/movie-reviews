@@ -77,6 +77,14 @@ func BadRequestHidden(err error, message string) *Error {
 	return newHiddenError(err, BadRequestCode, message)
 }
 
+func EnsureInternal(err error) error {
+	var appErr *Error
+	if !errors.As(err, &appErr) {
+		return Internal(err)
+	}
+	return err
+}
+
 func VersionMismatch(subject, key string, value any, version int) *Error {
 	return newError(VersionMismatchCode, fmt.Sprintf("stale version %d for %s %s:%v", version, subject, key, value))
 }
