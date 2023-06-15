@@ -5,22 +5,27 @@ import (
 
 	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/cloudmachinery/movie-reviews/internal/dbx"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
+	"github.com/cloudmachinery/movie-reviews/internal/slices"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
-	db *pgxpool.Pool
+	db               *pgxpool.Pool
+	genresRepository *genres.Repository
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
+func NewRepository(db *pgxpool.Pool, genresRepository *genres.Repository) *Repository {
 	return &Repository{
-		db: db,
+		db:               db,
+		genresRepository: genresRepository,
 	}
 }
 
 func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error {
-	queryString := `
+	err := dbx.InTransaction(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
+		queryString := `
 	INSERT INTO movies 
 	(title, release_date, description) 
 	VALUES 
@@ -28,18 +33,31 @@ func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error
 	RETURNING
 	id, created_at;
 	`
-	row := r.db.QueryRow(ctx, queryString,
-		&movie.Title,
-		&movie.ReleaseDate,
-		&movie.Description,
-	)
+		row := tx.QueryRow(ctx, queryString,
+			&movie.Title,
+			&movie.ReleaseDate,
+			&movie.Description,
+		)
+		err := row.Scan(
+			&movie.ID,
+			&movie.CreatedAt,
+		)
+		if err != nil {
+			return apperrors.Internal(err)
+		}
 
-	err := row.Scan(
-		&movie.ID,
-		&movie.CreatedAt,
-	)
+		next := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
+			return &genres.MovieGenreRelation{
+				MovieID: movie.ID,
+				GenreID: genre.ID,
+				OrderNo: i,
+			}
+		})
+
+		return r.updateGenres(ctx, []*genres.MovieGenreRelation{}, next)
+	})
 	if err != nil {
-		return apperrors.Internal(err)
+		return apperrors.EnsureInternal(err)
 	}
 	return nil
 }
@@ -123,7 +141,8 @@ func (r *Repository) GetAllPaginated(ctx context.Context, offset, limit int) ([]
 }
 
 func (r *Repository) UpdateMovie(ctx context.Context, id int, movie *MovieDetails) error {
-	queryString := `
+	err := dbx.InTransaction(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
+		queryString := `
 	UPDATE movies 
 	SET 
 		title = $2,
@@ -132,38 +151,86 @@ func (r *Repository) UpdateMovie(ctx context.Context, id int, movie *MovieDetail
 		version = version + 1
 	WHERE id = $1 and deleted_at IS NULL and version = $5`
 
-	cmdTag, err := r.db.Exec(ctx, queryString,
-		id,
-		movie.Title,
-		movie.ReleaseDate,
-		movie.Description,
-		movie.Version,
-	)
-	if err != nil {
-		return apperrors.Internal(err)
-	}
+		cmdTag, err := tx.Exec(ctx, queryString,
+			id,
+			movie.Title,
+			movie.ReleaseDate,
+			movie.Description,
+			movie.Version,
+		)
+		if err != nil {
+			return apperrors.Internal(err)
+		}
 
-	if cmdTag.RowsAffected() == 0 {
-		_, err := r.GetMovieByID(ctx, id)
+		if cmdTag.RowsAffected() == 0 {
+			_, err = r.GetMovieByID(ctx, id)
+			if err != nil {
+				return err
+			}
+			return apperrors.VersionMismatch("movie", "id", id, movie.Version)
+		}
+
+		next := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
+			return &genres.MovieGenreRelation{
+				MovieID: id,
+				GenreID: genre.ID,
+				OrderNo: i,
+			}
+		})
+
+		current, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
 		if err != nil {
 			return err
 		}
-		return apperrors.VersionMismatch("movie", "id", id, movie.Version)
+
+		return r.updateGenres(ctx, current, next)
+	})
+	if err != nil {
+		return apperrors.EnsureInternal(err)
 	}
 
 	return nil
 }
 
 func (r *Repository) DeleteMovie(ctx context.Context, id int) error {
-	queryString := "UPDATE movies SET deleted_at = NOW() WHERE id = $1 and deleted_at IS NULL;"
-	cmdTag, err := r.db.Exec(ctx, queryString, id)
-	if err != nil {
-		return apperrors.Internal(err)
-	}
+	err := dbx.InTransaction(ctx, r.db, func(ctx context.Context, tx pgx.Tx) error {
+		queryString := "UPDATE movies SET deleted_at = NOW() WHERE id = $1 and deleted_at IS NULL;"
+		cmdTag, err := tx.Exec(ctx, queryString, id)
+		if err != nil {
+			return apperrors.Internal(err)
+		}
 
-	if cmdTag.RowsAffected() == 0 {
-		return apperrors.NotFound("movie", "id", id)
+		if cmdTag.RowsAffected() == 0 {
+			return apperrors.NotFound("movie", "id", id)
+		}
+		current, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
+		if err != nil {
+			return err
+		}
+		return r.updateGenres(ctx, current, []*genres.MovieGenreRelation{})
+	})
+	if err != nil {
+		return apperrors.EnsureInternal(err)
 	}
 
 	return nil
+}
+
+func (r *Repository) updateGenres(ctx context.Context, current, next []*genres.MovieGenreRelation) error {
+	q := dbx.FromContext(ctx, r.db)
+	addFunc := func(mgo *genres.MovieGenreRelation) error {
+		_, err := q.Exec(ctx,
+			"INSERT INTO movie_genres (movie_id, genre_id, order_no) VALUES ($1, $2, $3)",
+			mgo.MovieID, mgo.GenreID, mgo.OrderNo)
+		return err
+	}
+
+	removeFunc := func(mgo *genres.MovieGenreRelation) error {
+		_, err := q.Exec(ctx,
+			"DELETE FROM movie_genres WHERE movie_id = $1 and genre_id = $2",
+			mgo.MovieID, mgo.GenreID)
+		return err
+	}
+
+	return dbx.AdjustRelations(current, next, addFunc, removeFunc)
 }

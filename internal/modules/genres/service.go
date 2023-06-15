@@ -31,3 +31,7 @@ func (s *Service) UpdateGenre(ctx context.Context, id int, name string) error {
 func (s *Service) DeleteGenre(ctx context.Context, id int) error {
 	return s.repo.DeleteGenre(ctx, id)
 }
+
+func (s *Service) GetGenresByMovieID(ctx context.Context, id int) ([]*Genre, error) {
+	return s.repo.GetGenresByMovieID(ctx, id)
+}

@@ -28,6 +28,7 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					 the ruthless Empire agent Darth Vader. Before she is captured, Leia hides the plans in the memory 
 					 system of astromech droid R2-D2, who flees in an escape pod to the nearby desert planet Tatooine 
 					 alongside his companion, protocol droid C-3PO.`,
+					Genres: []int{Action.ID, Drama.ID},
 				},
 				addr: &starWars,
 			},
@@ -38,6 +39,7 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					Description: `In 1997, probationary secret agent Lee Unwin sacrifices himself in the Middle 
 					East to save his superior, Harry Hart. Blaming himself for Lee's death, Harry returns to London 
 					and gives Lee's young son Gary "Eggsy" a medal engraved with an emergency assistance number.`,
+					Genres: []int{Action.ID},
 				},
 				addr: &kingsMan,
 			},
@@ -51,6 +53,7 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					Murphy and Swanney, "Mother Superior", their dealer. Renton's other friends, aggressive, alcoholic 
 					psychopath Francis "Franco" Begbie and honest footballer and recreational speed user Tommy Mackenzie, 
 					who both abstain from heroin, warn him about his dangerous drug habit. `,
+					Genres: []int{Drama.ID},
 				},
 				addr: &trainspotting,
 			},
@@ -64,6 +67,8 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 			*cc.addr = movie
 			require.NotEmpty(t, movie.ID)
 			require.NotEmpty(t, movie.CreatedAt)
+			require.NotEmpty(t, movie.Genres)
+			require.Equal(t, len(cc.req.Genres), len(movie.Genres))
 		}
 	})
 
@@ -81,6 +86,10 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 		movie, err := c.GetMovieByID(starWars.ID)
 		require.NoError(t, err)
 		require.Equal(t, movie.ID, starWars.ID)
+		require.Equal(t, len(starWars.Genres), len(movie.Genres))
+		for i, genre := range starWars.Genres {
+			require.Equal(t, *genre, *movie.Genres[i])
+		}
 	})
 
 	t.Run("movies.GetMovieByID: not found", func(t *testing.T) {
@@ -108,13 +117,14 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, []*contracts.Movie{&trainspotting.Movie}, res.Items)
 	})
 
-	t.Run("movies.Update: success", func(t *testing.T) {
+	t.Run("movies.Update: the same genres success", func(t *testing.T) {
 		req := &contracts.UpdateMovieRequest{
 			ID:          trainspotting.ID,
 			Title:       trainspotting.Title,
 			ReleaseDate: trainspotting.ReleaseDate,
 			Description: "updated description",
 			Version:     0,
+			Genres:      []int{Drama.ID},
 		}
 		err := c.UpdateMovie(contracts.NewAuthenticated(req, johnDoeToken))
 		require.NoError(t, err)
@@ -122,6 +132,31 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 		res, err := c.GetMovieByID(trainspotting.ID)
 		require.NoError(t, err)
 		require.Equal(t, req.Description, res.Description)
+		require.Equal(t, len(req.Genres), len(res.Genres))
+		for i, genreID := range req.Genres {
+			require.Equal(t, genreID, res.Genres[i].ID)
+		}
+	})
+
+	t.Run("movies.Update: different genres success", func(t *testing.T) {
+		req := &contracts.UpdateMovieRequest{
+			ID:          trainspotting.ID,
+			Title:       trainspotting.Title,
+			ReleaseDate: trainspotting.ReleaseDate,
+			Description: "updated description",
+			Version:     1,
+			Genres:      []int{Action.ID},
+		}
+		err := c.UpdateMovie(contracts.NewAuthenticated(req, johnDoeToken))
+		require.NoError(t, err)
+
+		res, err := c.GetMovieByID(trainspotting.ID)
+		require.NoError(t, err)
+		require.Equal(t, req.Description, res.Description)
+		require.Equal(t, len(req.Genres), len(res.Genres))
+		for i, genreID := range req.Genres {
+			require.Equal(t, genreID, res.Genres[i].ID)
+		}
 	})
 
 	t.Run("movies.Update: unathorized", func(t *testing.T) {

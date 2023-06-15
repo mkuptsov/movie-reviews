@@ -6,6 +6,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/cloudmachinery/movie-reviews/internal/config"
 	"github.com/cloudmachinery/movie-reviews/internal/echox"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
 	"github.com/cloudmachinery/movie-reviews/internal/pagination"
 	"github.com/labstack/echo/v4"
 )
@@ -34,6 +35,10 @@ func (h *Handler) CreateMovie(c echo.Context) error {
 			ReleaseDate: req.ReleaseDate,
 		},
 		Description: req.Description,
+	}
+
+	for _, item := range req.Genres {
+		movie.Genres = append(movie.Genres, &genres.Genre{ID: item})
 	}
 
 	err = h.Service.CreateMovie(c.Request().Context(), movie)
@@ -87,8 +92,13 @@ func (h *Handler) UpdateMovie(c echo.Context) error {
 			ReleaseDate: req.ReleaseDate,
 		},
 		Description: req.Description,
+		Version:     req.Version,
 	}
 	id := req.ID
+
+	for _, item := range req.Genres {
+		movie.Genres = append(movie.Genres, &genres.Genre{ID: item})
+	}
 
 	err = h.Service.UpdateMovie(c.Request().Context(), id, movie)
 	if err != nil {
