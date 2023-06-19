@@ -80,20 +80,44 @@ func (r *Repository) GetStarByID(ctx context.Context, id int) (*StarDetails, err
 	return &star, nil
 }
 
-func (r *Repository) GetAllPaginated(ctx context.Context, offset, limit int) ([]*Star, int, error) {
-	queryPage := `
-	SELECT id, first_name, last_name, birth_date, death_date, created_at, deleted_at
-	FROM stars
-	WHERE deleted_at IS NULL
-	ORDER BY id
-	LIMIT $2
-	OFFSET $1;`
+func (r *Repository) GetAllPaginated(ctx context.Context, movieID *int, offset, limit int) ([]*Star, int, error) {
+	queryPage := dbx.StatementBuilder.
+		Select("id, first_name, last_name, birth_date, death_date, created_at, deleted_at").
+		From("stars").
+		Where("deleted_at IS NULL").
+		OrderBy("id").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-	queryTotal := "SELECT count(*) FROM stars WHERE deleted_at IS NULL"
+	queryTotal := dbx.StatementBuilder.
+		Select("count(*)").
+		From("stars").
+		Where("deleted_at IS NULL")
 
+	if movieID != nil {
+		queryPage = queryPage.
+			Join("movie_stars on stars.id = movie_stars.star_id").
+			Where("movie_stars.movie_id = ?", movieID)
+
+		queryTotal = queryTotal.
+			Join("movie_stars on stars.id = movie_stars.star_id").
+			Where("movie_stars.movie_id = ?", movieID)
+	}
 	b := &pgx.Batch{}
-	b.Queue(queryPage, offset, limit)
-	b.Queue(queryTotal)
+	// nolint:revive
+	if sql, args, err := queryPage.ToSql(); err != nil {
+		return nil, 0, err
+	} else {
+		b.Queue(sql, args...)
+	}
+	// ...
+	// nolint:revive
+	if sql, args, err := queryTotal.ToSql(); err != nil {
+		return nil, 0, err
+	} else {
+		b.Queue(sql, args...)
+	}
+	// ...
 
 	br := r.db.SendBatch(ctx, b)
 	defer br.Close()
@@ -178,4 +202,66 @@ func (r *Repository) DeleteStar(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (r *Repository) GetCastsByMovieID(ctx context.Context, id int) ([]*MovieCredit, error) {
+	queryString := `
+	SELECT s.id, s.first_name, s.last_name, s.birth_date, s.death_date, s.created_at, s.deleted_at, ms.role, ms.details
+	FROM stars s
+	INNER JOIN movie_stars ms ON ms.star_id = s.id
+	WHERE ms.movie_id = $1
+	ORDER BY ms.order_no`
+	rows, err := r.db.Query(ctx, queryString, id)
+	if err != nil {
+		return nil, apperrors.Internal(err)
+	}
+	var cast []*MovieCredit
+	for rows.Next() {
+		var mc MovieCredit
+		err = rows.Scan(
+			&mc.Star.ID,
+			&mc.Star.FirstName,
+			&mc.Star.LastName,
+			&mc.Star.BirthDate,
+			&mc.Star.DeathDate,
+			&mc.Star.CreatedAt,
+			&mc.Star.DeletedAt,
+			&mc.Role,
+			&mc.Details,
+		)
+		if err != nil {
+			return nil, apperrors.Internal(err)
+		}
+		cast = append(cast, &mc)
+	}
+	return cast, nil
+}
+
+func (r *Repository) GetRelationsByMovieID(ctx context.Context, id int) ([]*MovieStarRelation, error) {
+	queryString := `
+	SELECT movie_id, star_id, role, details, order_no
+	FROM movie_stars
+	WHERE movie_id = $1`
+	q := dbx.FromContext(ctx, r.db)
+	rows, err := q.Query(ctx, queryString, id)
+	if err != nil {
+		return nil, apperrors.Internal(err)
+	}
+	var relations []*MovieStarRelation
+	for rows.Next() {
+		var r MovieStarRelation
+		err = rows.Scan(
+			&r.MovieID,
+			&r.StarID,
+			&r.Role,
+			&r.Details,
+			&r.OrderNo,
+		)
+		if err != nil {
+			return nil, apperrors.Internal(err)
+		}
+
+		relations = append(relations, &r)
+	}
+	return relations, nil
 }

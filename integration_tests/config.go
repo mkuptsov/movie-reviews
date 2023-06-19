@@ -25,7 +25,7 @@ func getConfig(pgConnString string) *config.Config {
 			DefaultSize: testPaginationSize,
 			MaxSize:     50,
 		},
-		Local:    true,
+		Local:    false,
 		LogLevel: "error",
 	}
 }

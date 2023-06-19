@@ -123,7 +123,8 @@ func (r *Repository) GetGenresByMovieID(ctx context.Context, id int) ([]*Genre, 
 
 func (r *Repository) GetRelationsByMovieID(ctx context.Context, id int) ([]*MovieGenreRelation, error) {
 	queryString := "SELECT movie_id, genre_id, order_no FROM movie_genres WHERE movie_id = $1"
-	rows, err := r.db.Query(ctx, queryString, id)
+	q := dbx.FromContext(ctx, r.db)
+	rows, err := q.Query(ctx, queryString, id)
 	if err != nil {
 		return nil, apperrors.Internal(err)
 	}

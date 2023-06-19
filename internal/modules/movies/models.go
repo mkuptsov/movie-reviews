@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
 )
 
 type Movie struct {
@@ -16,7 +17,8 @@ type Movie struct {
 
 type MovieDetails struct {
 	Movie
-	Description string          `json:"description"`
-	Version     int             `json:"version"`
-	Genres      []*genres.Genre `json:"genres"`
+	Description string               `json:"description"`
+	Version     int                  `json:"version"`
+	Genres      []*genres.Genre      `json:"genres"`
+	Cast        []*stars.MovieCredit `json:"cast"`
 }

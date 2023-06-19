@@ -29,7 +29,7 @@ func (c *Client) GetStars(req *contracts.GetStarsRequest) (*contracts.PaginatedR
 
 	_, err := c.client.R().
 		SetResult(&res).
-		SetQueryParams(req.PaginatiedRequest.ToQueryParams()).
+		SetQueryParams(req.ToQueryParams()).
 		Get(c.path("/api/stars"))
 
 	return &res, err
