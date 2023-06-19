@@ -29,6 +29,17 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					 system of astromech droid R2-D2, who flees in an escape pod to the nearby desert planet Tatooine 
 					 alongside his companion, protocol droid C-3PO.`,
 					Genres: []int{Action.ID, Drama.ID},
+					Cast: []*contracts.MovieCreditInfo{
+						{
+							StarID: lucas.ID,
+							Role:   "director",
+						},
+						{
+							StarID:  hamill.ID,
+							Role:    "actor",
+							Details: contracts.Ptr("char1, char2"),
+						},
+					},
 				},
 				addr: &starWars,
 			},
@@ -40,6 +51,13 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					East to save his superior, Harry Hart. Blaming himself for Lee's death, Harry returns to London 
 					and gives Lee's young son Gary "Eggsy" a medal engraved with an emergency assistance number.`,
 					Genres: []int{Action.ID},
+					Cast: []*contracts.MovieCreditInfo{
+						{
+							StarID:  hamill.ID,
+							Role:    "actor",
+							Details: contracts.Ptr("char3"),
+						},
+					},
 				},
 				addr: &kingsMan,
 			},
@@ -54,6 +72,13 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					psychopath Francis "Franco" Begbie and honest footballer and recreational speed user Tommy Mackenzie, 
 					who both abstain from heroin, warn him about his dangerous drug habit. `,
 					Genres: []int{Drama.ID},
+					Cast: []*contracts.MovieCreditInfo{
+						{
+							StarID:  hamill.ID,
+							Role:    "actor",
+							Details: contracts.Ptr("char4"),
+						},
+					},
 				},
 				addr: &trainspotting,
 			},
@@ -69,6 +94,8 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 			require.NotEmpty(t, movie.CreatedAt)
 			require.NotEmpty(t, movie.Genres)
 			require.Equal(t, len(cc.req.Genres), len(movie.Genres))
+			require.NotEmpty(t, movie.Cast)
+			require.Equal(t, len(cc.req.Cast), len(movie.Cast))
 		}
 	})
 
@@ -85,10 +112,14 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 	t.Run("movies.GetMovieByID: success", func(t *testing.T) {
 		movie, err := c.GetMovieByID(starWars.ID)
 		require.NoError(t, err)
-		require.Equal(t, movie.ID, starWars.ID)
+		require.Equal(t, starWars.ID, movie.ID)
 		require.Equal(t, len(starWars.Genres), len(movie.Genres))
 		for i, genre := range starWars.Genres {
 			require.Equal(t, *genre, *movie.Genres[i])
+		}
+		require.Equal(t, len(starWars.Cast), len(movie.Cast))
+		for i, cast := range starWars.Cast {
+			require.Equal(t, *cast, *movie.Cast[i])
 		}
 	})
 
@@ -117,7 +148,19 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, []*contracts.Movie{&trainspotting.Movie}, res.Items)
 	})
 
-	t.Run("movies.Update: the same genres success", func(t *testing.T) {
+	t.Run("stars.GetAll: by movie ID success", func(t *testing.T) {
+		req := contracts.GetStarsRequest{
+			MovieID: contracts.Ptr(kingsMan.ID),
+		}
+		res, err := c.GetStars(&req)
+		require.NoError(t, err)
+		require.Equal(t, len(kingsMan.Cast), res.Total)
+		require.Equal(t, 1, res.Page)
+		require.Equal(t, testPaginationSize, res.Size)
+		require.Equal(t, []*contracts.Star{&hamill.Star}, res.Items)
+	})
+
+	t.Run("movies.Update: the same genre success", func(t *testing.T) {
 		req := &contracts.UpdateMovieRequest{
 			ID:          trainspotting.ID,
 			Title:       trainspotting.Title,
@@ -125,16 +168,32 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 			Description: "updated description",
 			Version:     0,
 			Genres:      []int{Drama.ID},
+			Cast: []*contracts.MovieCreditInfo{
+				{
+					StarID: lucas.ID,
+					Role:   "producer",
+				},
+				{
+					StarID: hamill.ID,
+					Role:   "director",
+				},
+			},
 		}
 		err := c.UpdateMovie(contracts.NewAuthenticated(req, johnDoeToken))
 		require.NoError(t, err)
 
 		res, err := c.GetMovieByID(trainspotting.ID)
 		require.NoError(t, err)
+
 		require.Equal(t, req.Description, res.Description)
 		require.Equal(t, len(req.Genres), len(res.Genres))
 		for i, genreID := range req.Genres {
 			require.Equal(t, genreID, res.Genres[i].ID)
+		}
+		require.Equal(t, len(req.Cast), len(res.Cast))
+		for i, mc := range req.Cast {
+			require.Equal(t, mc.StarID, res.Cast[i].Star.ID)
+			require.Equal(t, mc.Role, res.Cast[i].Role)
 		}
 	})
 
@@ -146,16 +205,28 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 			Description: "updated description",
 			Version:     1,
 			Genres:      []int{Action.ID},
+			Cast: []*contracts.MovieCreditInfo{
+				{
+					StarID: hamill.ID,
+					Role:   "director",
+				},
+			},
 		}
 		err := c.UpdateMovie(contracts.NewAuthenticated(req, johnDoeToken))
 		require.NoError(t, err)
 
 		res, err := c.GetMovieByID(trainspotting.ID)
+
 		require.NoError(t, err)
 		require.Equal(t, req.Description, res.Description)
 		require.Equal(t, len(req.Genres), len(res.Genres))
 		for i, genreID := range req.Genres {
 			require.Equal(t, genreID, res.Genres[i].ID)
+		}
+		require.Equal(t, len(req.Cast), len(res.Cast))
+		for i, mc := range req.Cast {
+			require.Equal(t, mc.StarID, res.Cast[i].Star.ID)
+			require.Equal(t, mc.Role, res.Cast[i].Role)
 		}
 	})
 

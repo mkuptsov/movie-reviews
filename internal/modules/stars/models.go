@@ -1,6 +1,10 @@
 package stars
 
-import "time"
+import (
+	"time"
+
+	"github.com/cloudmachinery/movie-reviews/internal/dbx"
+)
 
 type Star struct {
 	ID        int        `json:"id"`
@@ -17,4 +21,40 @@ type StarDetails struct {
 	MiddleName *string `json:"middle_name,omitempty"`
 	BirthPlace *string `json:"birth_place,omitempty"`
 	Bio        *string `json:"bio,omitempty"`
+}
+
+type MovieCredit struct {
+	Star    Star    `json:"star"`
+	Role    string  `json:"role"`
+	Details *string `json:"details"`
+}
+
+type MovieCreditInfo struct {
+	StarID  int     `json:"star_id"`
+	Role    string  `json:"role"`
+	Details *string `json:"details"`
+}
+
+var _ dbx.Keyer = MovieStarRelation{}
+
+type MovieStarRelation struct {
+	MovieID int
+	StarID  int
+	Role    string
+	Details *string
+	OrderNo int
+}
+
+func (m MovieStarRelation) Key() any {
+	type MovieStarRelationKey struct {
+		MovieID int
+		StarID  int
+		Role    string
+	}
+
+	return MovieStarRelationKey{
+		MovieID: m.MovieID,
+		StarID:  m.StarID,
+		Role:    m.Role,
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/cloudmachinery/movie-reviews/internal/dbx"
 	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
+	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
 	"github.com/cloudmachinery/movie-reviews/internal/slices"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,12 +15,14 @@ import (
 type Repository struct {
 	db               *pgxpool.Pool
 	genresRepository *genres.Repository
+	starsRepository  *stars.Repository
 }
 
-func NewRepository(db *pgxpool.Pool, genresRepository *genres.Repository) *Repository {
+func NewRepository(db *pgxpool.Pool, genresRepo *genres.Repository, starsRepo *stars.Repository) *Repository {
 	return &Repository{
 		db:               db,
-		genresRepository: genresRepository,
+		genresRepository: genresRepo,
+		starsRepository:  starsRepo,
 	}
 }
 
@@ -46,7 +49,7 @@ func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error
 			return apperrors.Internal(err)
 		}
 
-		next := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
+		nextGenres := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
 			return &genres.MovieGenreRelation{
 				MovieID: movie.ID,
 				GenreID: genre.ID,
@@ -54,7 +57,22 @@ func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error
 			}
 		})
 
-		return r.updateGenres(ctx, []*genres.MovieGenreRelation{}, next)
+		err = r.updateGenres(ctx, []*genres.MovieGenreRelation{}, nextGenres)
+		if err != nil {
+			return err
+		}
+
+		nextCast := slices.MapIndex(movie.Cast, func(i int, cast *stars.MovieCredit) *stars.MovieStarRelation {
+			return &stars.MovieStarRelation{
+				MovieID: movie.ID,
+				StarID:  cast.Star.ID,
+				Role:    cast.Role,
+				Details: cast.Details,
+				OrderNo: i,
+			}
+		})
+
+		return r.updateCast(ctx, []*stars.MovieStarRelation{}, nextCast)
 	})
 	if err != nil {
 		return apperrors.EnsureInternal(err)
@@ -63,6 +81,7 @@ func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error
 }
 
 func (r *Repository) GetMovieByID(ctx context.Context, id int) (*MovieDetails, error) {
+	q := dbx.FromContext(ctx, r.db)
 	queryString := `
 	SELECT id, title, description, release_date, created_at, deleted_at, version
 	FROM movies
@@ -70,7 +89,7 @@ func (r *Repository) GetMovieByID(ctx context.Context, id int) (*MovieDetails, e
 
 	movie := MovieDetails{}
 
-	row := r.db.QueryRow(ctx, queryString, id)
+	row := q.QueryRow(ctx, queryString, id)
 	err := row.Scan(
 		&movie.ID,
 		&movie.Title,
@@ -170,7 +189,7 @@ func (r *Repository) UpdateMovie(ctx context.Context, id int, movie *MovieDetail
 			return apperrors.VersionMismatch("movie", "id", id, movie.Version)
 		}
 
-		next := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
+		nextGenres := slices.MapIndex(movie.Genres, func(i int, genre *genres.Genre) *genres.MovieGenreRelation {
 			return &genres.MovieGenreRelation{
 				MovieID: id,
 				GenreID: genre.ID,
@@ -178,12 +197,32 @@ func (r *Repository) UpdateMovie(ctx context.Context, id int, movie *MovieDetail
 			}
 		})
 
-		current, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
+		currentGenres, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
 		if err != nil {
 			return err
 		}
 
-		return r.updateGenres(ctx, current, next)
+		err = r.updateGenres(ctx, currentGenres, nextGenres)
+		if err != nil {
+			return err
+		}
+
+		nextCast := slices.MapIndex(movie.Cast, func(i int, mc *stars.MovieCredit) *stars.MovieStarRelation {
+			return &stars.MovieStarRelation{
+				MovieID: id,
+				StarID:  mc.Star.ID,
+				Role:    mc.Role,
+				Details: mc.Details,
+				OrderNo: i,
+			}
+		})
+
+		currentCast, err := r.starsRepository.GetRelationsByMovieID(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		return r.updateCast(ctx, currentCast, nextCast)
 	})
 	if err != nil {
 		return apperrors.EnsureInternal(err)
@@ -203,11 +242,19 @@ func (r *Repository) DeleteMovie(ctx context.Context, id int) error {
 		if cmdTag.RowsAffected() == 0 {
 			return apperrors.NotFound("movie", "id", id)
 		}
-		current, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
+		currentGenres, err := r.genresRepository.GetRelationsByMovieID(ctx, id)
 		if err != nil {
 			return err
 		}
-		return r.updateGenres(ctx, current, []*genres.MovieGenreRelation{})
+		err = r.updateGenres(ctx, currentGenres, []*genres.MovieGenreRelation{})
+		if err != nil {
+			return err
+		}
+		currentCast, err := r.starsRepository.GetRelationsByMovieID(ctx, id)
+		if err != nil {
+			return err
+		}
+		return r.updateCast(ctx, currentCast, []*stars.MovieStarRelation{})
 	})
 	if err != nil {
 		return apperrors.EnsureInternal(err)
@@ -222,14 +269,44 @@ func (r *Repository) updateGenres(ctx context.Context, current, next []*genres.M
 		_, err := q.Exec(ctx,
 			"INSERT INTO movie_genres (movie_id, genre_id, order_no) VALUES ($1, $2, $3)",
 			mgo.MovieID, mgo.GenreID, mgo.OrderNo)
-		return err
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+		return nil
 	}
 
 	removeFunc := func(mgo *genres.MovieGenreRelation) error {
 		_, err := q.Exec(ctx,
 			"DELETE FROM movie_genres WHERE movie_id = $1 and genre_id = $2",
 			mgo.MovieID, mgo.GenreID)
-		return err
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+		return nil
+	}
+
+	return dbx.AdjustRelations(current, next, addFunc, removeFunc)
+}
+
+func (r *Repository) updateCast(ctx context.Context, current, next []*stars.MovieStarRelation) error {
+	q := dbx.FromContext(ctx, r.db)
+	addFunc := func(s *stars.MovieStarRelation) error {
+		_, err := q.Exec(ctx,
+			"INSERT INTO movie_stars (movie_id, star_id, role, details, order_no) VALUES ($1, $2, $3, $4, $5)",
+			s.MovieID, s.StarID, s.Role, s.Details, s.OrderNo)
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+		return nil
+	}
+	removeFunc := func(s *stars.MovieStarRelation) error {
+		_, err := q.Exec(ctx,
+			"DELETE FROM movie_stars WHERE movie_id = $1 and star_id = $2 and role = $3",
+			s.MovieID, s.StarID, s.Role)
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+		return nil
 	}
 
 	return dbx.AdjustRelations(current, next, addFunc, removeFunc)
