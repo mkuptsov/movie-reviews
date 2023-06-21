@@ -103,21 +103,18 @@ func (r *Repository) GetAllPaginated(ctx context.Context, movieID *int, offset, 
 			Join("movie_stars on stars.id = movie_stars.star_id").
 			Where("movie_stars.movie_id = ?", movieID)
 	}
+
 	b := &pgx.Batch{}
-	// nolint:revive
-	if sql, args, err := queryPage.ToSql(); err != nil {
+
+	err := dbx.QueueBatchSelect(b, queryPage)
+	if err != nil {
 		return nil, 0, err
-	} else {
-		b.Queue(sql, args...)
 	}
-	// ...
-	// nolint:revive
-	if sql, args, err := queryTotal.ToSql(); err != nil {
+
+	err = dbx.QueueBatchSelect(b, queryTotal)
+	if err != nil {
 		return nil, 0, err
-	} else {
-		b.Queue(sql, args...)
 	}
-	// ...
 
 	br := r.db.SendBatch(ctx, b)
 	defer br.Close()

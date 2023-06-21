@@ -74,7 +74,7 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 					Genres: []int{Drama.ID},
 					Cast: []*contracts.MovieCreditInfo{
 						{
-							StarID:  hamill.ID,
+							StarID:  mcgregor.ID,
 							Role:    "actor",
 							Details: contracts.Ptr("char4"),
 						},
@@ -148,16 +148,41 @@ func moviesAPIChecks(t *testing.T, c *client.Client) {
 		require.Equal(t, []*contracts.Movie{&trainspotting.Movie}, res.Items)
 	})
 
+	t.Run("movies.GetAll: by star ID", func(t *testing.T) {
+		req := contracts.GetMoviesRequest{
+			StarID: contracts.Ptr(hamill.ID),
+		}
+		res, err := c.GetMovies(&req)
+		require.NoError(t, err)
+		require.Equal(t, 2, res.Total)
+		require.Equal(t, 1, res.Page)
+		require.Equal(t, testPaginationSize, res.Size)
+		require.Equal(t, []*contracts.Movie{&starWars.Movie, &kingsMan.Movie}, res.Items)
+	})
+
 	t.Run("stars.GetAll: by movie ID success", func(t *testing.T) {
 		req := contracts.GetStarsRequest{
 			MovieID: contracts.Ptr(kingsMan.ID),
 		}
 		res, err := c.GetStars(&req)
+
 		require.NoError(t, err)
 		require.Equal(t, len(kingsMan.Cast), res.Total)
 		require.Equal(t, 1, res.Page)
 		require.Equal(t, testPaginationSize, res.Size)
 		require.Equal(t, []*contracts.Star{&hamill.Star}, res.Items)
+	})
+
+	t.Run("movies.GetAll: about Eggsy", func(t *testing.T) {
+		req := &contracts.GetMoviesRequest{
+			SearchTerm: contracts.Ptr("Eggsy"),
+		}
+		res, err := c.GetMovies(req)
+		require.NoError(t, err)
+		require.Equal(t, 1, res.Total)
+		require.Equal(t, 1, res.Page)
+		require.Equal(t, testPaginationSize, res.Size)
+		require.Equal(t, []*contracts.Movie{&kingsMan.Movie}, res.Items)
 	})
 
 	t.Run("movies.Update: the same genre success", func(t *testing.T) {

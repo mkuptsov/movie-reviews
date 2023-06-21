@@ -47,8 +47,8 @@ func (s *Service) GetMovieByID(ctx context.Context, id int) (*MovieDetails, erro
 	return movie, nil
 }
 
-func (s *Service) GetAllPaginated(ctx context.Context, offset, limit int) ([]*Movie, int, error) {
-	return s.repo.GetAllPaginated(ctx, offset, limit)
+func (s *Service) GetAllPaginated(ctx context.Context, starID *int, searchTerm *string, offset, limit int) ([]*Movie, int, error) {
+	return s.repo.GetAllPaginated(ctx, starID, searchTerm, offset, limit)
 }
 
 func (s *Service) UpdateMovie(ctx context.Context, id int, movie *MovieDetails) error {
