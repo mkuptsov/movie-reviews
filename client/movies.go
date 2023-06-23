@@ -29,7 +29,7 @@ func (c *Client) GetMovies(req *contracts.GetMoviesRequest) (*contracts.Paginate
 
 	_, err := c.client.R().
 		SetResult(&res).
-		SetQueryParams(req.PaginatiedRequest.ToQueryParams()).
+		SetQueryParams(req.ToQueryParams()).
 		Get(c.path("/api/movies"))
 
 	return &res, err

@@ -1,6 +1,9 @@
 package contracts
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type Movie struct {
 	ID          int        `json:"id"`
@@ -24,6 +27,19 @@ type GetMovieByIDRequest struct {
 
 type GetMoviesRequest struct {
 	PaginatiedRequest
+	StarID     *int    `query:"starID"`
+	SearchTerm *string `query:"q"`
+}
+
+func (r *GetMoviesRequest) ToQueryParams() map[string]string {
+	params := r.PaginatiedRequest.ToQueryParams()
+	if r.StarID != nil {
+		params["starID"] = strconv.Itoa(*r.StarID)
+	}
+	if r.SearchTerm != nil {
+		params["q"] = *r.SearchTerm
+	}
+	return params
 }
 
 type CreateMovieRequest struct {
