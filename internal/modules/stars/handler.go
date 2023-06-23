@@ -68,15 +68,15 @@ func (h *Handler) GetAll(c echo.Context) error {
 		return err
 	}
 
-	pagination.SetDefaults(&req.PaginatiedRequest, h.PaginationConfig)
-	offset, limit := pagination.OffsetLimit(&req.PaginatiedRequest)
+	pagination.SetDefaults(&req.PaginatedRequest, h.PaginationConfig)
+	offset, limit := pagination.OffsetLimit(&req.PaginatedRequest)
 
 	stars, total, err := h.Service.GetAllPaginated(c.Request().Context(), req.MovieID, offset, limit)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(http.StatusOK, pagination.Response(&req.PaginatiedRequest, total, stars))
+	return c.JSON(http.StatusOK, pagination.Response(&req.PaginatedRequest, total, stars))
 }
 
 func (h *Handler) UpdateStar(c echo.Context) error {

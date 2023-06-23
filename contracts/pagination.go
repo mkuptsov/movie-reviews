@@ -2,7 +2,7 @@ package contracts
 
 import "strconv"
 
-type PaginatiedRequest struct {
+type PaginatedRequest struct {
 	Page int `json:"page" query:"page"`
 	Size int `json:"size" query:"size"`
 }
@@ -14,7 +14,7 @@ type PaginatedResponse[T any] struct {
 	Items []*T `json:"items"`
 }
 
-func (req *PaginatiedRequest) ToQueryParams() map[string]string {
+func (req *PaginatedRequest) ToQueryParams() map[string]string {
 	params := make(map[string]string, 2)
 	if req.Page > 0 {
 		params["page"] = strconv.Itoa(req.Page)
