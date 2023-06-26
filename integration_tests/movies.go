@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func moviesAPIChecks(t *testing.T, c *client.Client) {
-	var starWars, kingsMan, trainspotting *contracts.MovieDetails
+var starWars, kingsMan, trainspotting *contracts.MovieDetails
 
+func moviesAPIChecks(t *testing.T, c *client.Client) {
 	t.Run("movies.Create: success", func(t *testing.T) {
 		cases := []struct {
 			req  *contracts.CreateMovieRequest

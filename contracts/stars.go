@@ -37,12 +37,12 @@ type GetStarByIDRequest struct {
 }
 
 type GetStarsRequest struct {
-	PaginatiedRequest
+	PaginatedRequest
 	MovieID *int `query:"movieID"`
 }
 
 func (r *GetStarsRequest) ToQueryParams() map[string]string {
-	params := r.PaginatiedRequest.ToQueryParams()
+	params := r.PaginatedRequest.ToQueryParams()
 	if r.MovieID != nil {
 		params["movieID"] = strconv.Itoa(*r.MovieID)
 	}

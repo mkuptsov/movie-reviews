@@ -5,7 +5,7 @@ import (
 	"github.com/cloudmachinery/movie-reviews/internal/config"
 )
 
-func SetDefaults(r *contracts.PaginatiedRequest, cfg config.PaginationConfig) {
+func SetDefaults(r *contracts.PaginatedRequest, cfg config.PaginationConfig) {
 	if r.Page == 0 {
 		r.Page = 1
 	}
@@ -17,14 +17,14 @@ func SetDefaults(r *contracts.PaginatiedRequest, cfg config.PaginationConfig) {
 	}
 }
 
-func OffsetLimit(r *contracts.PaginatiedRequest) (int, int) {
+func OffsetLimit(r *contracts.PaginatedRequest) (int, int) {
 	offset := (r.Page - 1) * r.Size
 	limit := r.Size
 
 	return offset, limit
 }
 
-func Response[T any](r *contracts.PaginatiedRequest, total int, items []*T) *contracts.PaginatedResponse[T] {
+func Response[T any](r *contracts.PaginatedRequest, total int, items []*T) *contracts.PaginatedResponse[T] {
 	return &contracts.PaginatedResponse[T]{
 		Page:  r.Page,
 		Size:  r.Size,

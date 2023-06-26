@@ -126,6 +126,7 @@ func registerRandomUser(t *testing.T, c *client.Client) *contracts.User {
 	return u
 }
 
+// nolint:unparam
 func login(t *testing.T, c *client.Client, email, password string) string {
 	req := &contracts.LoginUserRequest{
 		Email:    email,
