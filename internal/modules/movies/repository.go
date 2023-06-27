@@ -83,7 +83,7 @@ func (r *Repository) CreateMovie(ctx context.Context, movie *MovieDetails) error
 func (r *Repository) GetMovieByID(ctx context.Context, id int) (*MovieDetails, error) {
 	q := dbx.FromContext(ctx, r.db)
 	queryString := `
-	SELECT id, title, description, release_date, created_at, deleted_at, version
+	SELECT id, title, description, release_date, avg_rating, created_at, deleted_at, version
 	FROM movies
 	WHERE id = $1 and deleted_at IS NULL;`
 
@@ -95,6 +95,7 @@ func (r *Repository) GetMovieByID(ctx context.Context, id int) (*MovieDetails, e
 		&movie.Title,
 		&movie.Description,
 		&movie.ReleaseDate,
+		&movie.AvgRating,
 		&movie.CreatedAt,
 		&movie.DeletedAt,
 		&movie.Version,
@@ -110,12 +111,11 @@ func (r *Repository) GetMovieByID(ctx context.Context, id int) (*MovieDetails, e
 	return &movie, nil
 }
 
-func (r *Repository) GetAllPaginated(ctx context.Context, starID *int, searchTerm *string, offset, limit int) ([]*Movie, int, error) {
+func (r *Repository) GetAllPaginated(ctx context.Context, starID *int, searchTerm *string, sortByRating *string, offset, limit int) ([]*Movie, int, error) {
 	queryPage := dbx.StatementBuilder.
-		Select("id, title, release_date, created_at, deleted_at").
+		Select("id, title, release_date, avg_rating, created_at, deleted_at").
 		From("movies").
 		Where("deleted_at IS NULL").
-		OrderBy("id").
 		Limit(uint64(limit)).
 		Offset(uint64(offset))
 
@@ -141,6 +141,11 @@ func (r *Repository) GetAllPaginated(ctx context.Context, starID *int, searchTer
 
 		queryTotal = queryTotal.
 			Where("search_vector @@ to_tsquery('english', ?)", *searchTerm)
+	}
+
+	if sortByRating != nil {
+		queryPage = queryPage.
+			OrderByClause("avg_rating " + *sortByRating)
 	}
 
 	b := &pgx.Batch{}
@@ -169,6 +174,7 @@ func (r *Repository) GetAllPaginated(ctx context.Context, starID *int, searchTer
 			&movie.ID,
 			&movie.Title,
 			&movie.ReleaseDate,
+			&movie.AvgRating,
 			&movie.CreatedAt,
 			&movie.DeletedAt,
 		)
@@ -339,4 +345,16 @@ func (r *Repository) updateCast(ctx context.Context, current, next []*stars.Movi
 	}
 
 	return dbx.AdjustRelations(current, next, addFunc, removeFunc)
+}
+
+func (r *Repository) Lock(ctx context.Context, tx pgx.Tx, movieID int) error {
+	n, err := tx.Exec(ctx, "SELECT * FROM movies WHERE deleted_at IS NULL and id = $1 FOR UPDATE", movieID)
+	if err != nil {
+		return apperrors.Internal(err)
+	}
+	if n.RowsAffected() == 0 {
+		return apperrors.NotFound("movie", "id", movieID)
+	}
+
+	return nil
 }

@@ -130,6 +130,34 @@ func reviewsAPIChecks(t *testing.T, c *client.Client) {
 		requireBadRequestError(t, err, "either movie_id or user_id must be provided")
 	})
 
+	t.Run("movies.GetMovies: return average rating", func(t *testing.T) {
+		res, err := c.GetMovies(&contracts.GetMoviesRequest{})
+		require.NoError(t, err)
+
+		for _, movie := range res.Items {
+			switch movie.ID {
+			case starWars.ID:
+				requireRatingEqual(t, 9.5, *movie.AvgRating)
+			case kingsMan.ID:
+				requireRatingEqual(t, 8, *movie.AvgRating)
+			}
+		}
+	})
+
+	t.Run("movies.GetMovies: return average rating ASC", func(t *testing.T) {
+		res, err := c.GetMovies(&contracts.GetMoviesRequest{
+			SortByRating: contracts.Ptr("asc"),
+		})
+		require.NoError(t, err)
+
+		rating1 := res.Items[0].AvgRating
+		for i := 1; i < len(res.Items); i++ {
+			rating2 := res.Items[i].AvgRating
+			require.Greater(t, *rating2, *rating1)
+			rating1 = rating2
+		}
+	})
+
 	t.Run("reviews.UpdateReview: success", func(t *testing.T) {
 		req := &contracts.UpdateReviewRequest{
 			ReviewID: review3.ID,
@@ -199,4 +227,9 @@ func getReview(t *testing.T, c *client.Client, reviewID int) *contracts.Review {
 	}
 
 	return review
+}
+
+func requireRatingEqual(t *testing.T, expected, actual float64) {
+	const insignificantDelta = 0.01
+	require.InDelta(t, expected, actual, insignificantDelta)
 }
