@@ -3,6 +3,8 @@ package stars
 import (
 	"net/http"
 
+	"golang.org/x/sync/singleflight"
+
 	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/cloudmachinery/movie-reviews/internal/config"
 	"github.com/cloudmachinery/movie-reviews/internal/echox"
@@ -13,6 +15,7 @@ import (
 type Handler struct {
 	Service          *Service
 	PaginationConfig config.PaginationConfig
+	reqGroup         singleflight.Group
 }
 
 func NewHandler(service *Service, cfg config.PaginationConfig) *Handler {
@@ -63,20 +66,27 @@ func (h *Handler) GetStarByID(c echo.Context) error {
 }
 
 func (h *Handler) GetAll(c echo.Context) error {
-	req, err := echox.BindAndValidate[contracts.GetStarsRequest](c)
+	res, err, _ := h.reqGroup.Do(c.Request().RequestURI, func() (any, error) {
+		req, err := echox.BindAndValidate[contracts.GetStarsRequest](c)
+		if err != nil {
+			return nil, err
+		}
+
+		pagination.SetDefaults(&req.PaginatedRequest, h.PaginationConfig)
+		offset, limit := pagination.OffsetLimit(&req.PaginatedRequest)
+
+		stars, total, err := h.Service.GetAllPaginated(c.Request().Context(), req.MovieID, offset, limit)
+		if err != nil {
+			return nil, err
+		}
+
+		return pagination.Response(&req.PaginatedRequest, total, stars), nil
+	})
 	if err != nil {
 		return err
 	}
 
-	pagination.SetDefaults(&req.PaginatedRequest, h.PaginationConfig)
-	offset, limit := pagination.OffsetLimit(&req.PaginatedRequest)
-
-	stars, total, err := h.Service.GetAllPaginated(c.Request().Context(), req.MovieID, offset, limit)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, pagination.Response(&req.PaginatedRequest, total, stars))
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Handler) UpdateStar(c echo.Context) error {

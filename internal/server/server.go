@@ -59,7 +59,7 @@ func New(ctx context.Context, cfg *config.Config) (*Server, error) {
 	genresModule := genres.NewModule(db)
 	starsModule := stars.NewModule(db, cfg.Pagination)
 	moviesModule := movies.NewModule(db, genresModule, starsModule, cfg.Pagination)
-	reviewsModule := reviews.NewModule(db, cfg.Pagination)
+	reviewsModule := reviews.NewModule(db, moviesModule, cfg.Pagination)
 
 	if err = createInitialAdminUser(cfg.Admin, authModule.Service); err != nil {
 		return nil, withClosers(closers, fmt.Errorf("create initial admin user: %w", err))
