@@ -1,4 +1,4 @@
-module github.com/cloudmachinery/movie-reviews
+module github.com/mkuptsov/movie-reviews
 
 go 1.20
 

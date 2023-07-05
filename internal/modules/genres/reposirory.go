@@ -3,10 +3,10 @@ package genres
 import (
 	"context"
 
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/dbx"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
+	"github.com/mkuptsov/movie-reviews/internal/dbx"
 )
 
 type Repository struct {

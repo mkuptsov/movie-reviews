@@ -1,6 +1,6 @@
 package client
 
-import "github.com/cloudmachinery/movie-reviews/contracts"
+import "github.com/mkuptsov/movie-reviews/contracts"
 
 func (c *Client) CreateStar(req *contracts.AuthenticatedRequest[*contracts.CreateStarRequest]) (*contracts.StarDetails, error) {
 	var star contracts.StarDetails

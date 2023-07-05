@@ -1,10 +1,10 @@
 package movies
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mkuptsov/movie-reviews/internal/config"
+	"github.com/mkuptsov/movie-reviews/internal/modules/genres"
+	"github.com/mkuptsov/movie-reviews/internal/modules/stars"
 )
 
 type Module struct {

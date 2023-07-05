@@ -5,11 +5,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cloudmachinery/movie-reviews/internal/maps"
+	"github.com/mkuptsov/movie-reviews/internal/maps"
 	"golang.org/x/exp/slog"
 
-	"github.com/cloudmachinery/movie-reviews/scrapper/models"
 	"github.com/gocolly/colly/v2"
+	"github.com/mkuptsov/movie-reviews/scrapper/models"
 )
 
 type StarCollector struct {

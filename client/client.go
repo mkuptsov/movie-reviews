@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cloudmachinery/movie-reviews/contracts"
 	"github.com/go-resty/resty/v2"
+	"github.com/mkuptsov/movie-reviews/contracts"
 )
 
 type Client struct {

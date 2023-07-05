@@ -1,8 +1,8 @@
 package stars
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/config"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mkuptsov/movie-reviews/internal/config"
 )
 
 type Module struct {

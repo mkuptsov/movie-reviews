@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
 )
 
 type Service struct {

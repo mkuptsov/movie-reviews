@@ -1,6 +1,6 @@
 package client
 
-import "github.com/cloudmachinery/movie-reviews/contracts"
+import "github.com/mkuptsov/movie-reviews/contracts"
 
 func (c *Client) CreateMovie(req *contracts.AuthenticatedRequest[*contracts.CreateMovieRequest]) (*contracts.MovieDetails, error) {
 	var movie contracts.MovieDetails

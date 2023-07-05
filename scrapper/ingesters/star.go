@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/exp/slog"
 
-	"github.com/cloudmachinery/movie-reviews/client"
-	"github.com/cloudmachinery/movie-reviews/contracts"
-	"github.com/cloudmachinery/movie-reviews/internal/maps"
-	"github.com/cloudmachinery/movie-reviews/internal/slices"
-	"github.com/cloudmachinery/movie-reviews/scrapper/models"
+	"github.com/mkuptsov/movie-reviews/client"
+	"github.com/mkuptsov/movie-reviews/contracts"
+	"github.com/mkuptsov/movie-reviews/internal/maps"
+	"github.com/mkuptsov/movie-reviews/internal/slices"
+	"github.com/mkuptsov/movie-reviews/scrapper/models"
 	"golang.org/x/sync/errgroup"
 )
 

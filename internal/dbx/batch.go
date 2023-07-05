@@ -2,8 +2,8 @@ package dbx
 
 import (
 	"github.com/Masterminds/squirrel"
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/jackc/pgx/v5"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
 )
 
 func QueueBatchSelect(b *pgx.Batch, sb squirrel.SelectBuilder) error {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
 	"golang.org/x/exp/slog"
 )
 

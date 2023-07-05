@@ -5,11 +5,11 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/cloudmachinery/movie-reviews/contracts"
-	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/echox"
-	"github.com/cloudmachinery/movie-reviews/internal/pagination"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/contracts"
+	"github.com/mkuptsov/movie-reviews/internal/config"
+	"github.com/mkuptsov/movie-reviews/internal/echox"
+	"github.com/mkuptsov/movie-reviews/internal/pagination"
 )
 
 type Handler struct {

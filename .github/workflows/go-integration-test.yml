@@ -3,10 +3,10 @@ name: Go integration tests
 on:
   pull_request:
     branches:
-      - mkuptsov/main
+      - main
   push:
     branches:
-      - mkuptsov/main
+      - main
 
 jobs:
   build-and-test:

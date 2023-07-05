@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/log"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
+	"github.com/mkuptsov/movie-reviews/internal/log"
 )
 
 type HTTPError struct {

@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/server"
+	"github.com/mkuptsov/movie-reviews/internal/config"
+	"github.com/mkuptsov/movie-reviews/internal/server"
 	"golang.org/x/exp/slog"
 )
 

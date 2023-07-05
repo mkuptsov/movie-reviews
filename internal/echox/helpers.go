@@ -1,8 +1,8 @@
 package echox
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
 	"gopkg.in/validator.v2"
 )
 

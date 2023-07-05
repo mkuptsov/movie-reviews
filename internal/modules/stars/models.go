@@ -3,7 +3,7 @@ package stars
 import (
 	"time"
 
-	"github.com/cloudmachinery/movie-reviews/internal/dbx"
+	"github.com/mkuptsov/movie-reviews/internal/dbx"
 )
 
 type Star struct {

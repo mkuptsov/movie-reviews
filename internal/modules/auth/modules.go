@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/jwt"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
+	"github.com/mkuptsov/movie-reviews/internal/jwt"
+	"github.com/mkuptsov/movie-reviews/internal/modules/users"
 )
 
 type Module struct {

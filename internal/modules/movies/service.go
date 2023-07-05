@@ -3,9 +3,9 @@ package movies
 import (
 	"context"
 
-	"github.com/cloudmachinery/movie-reviews/internal/log"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
+	"github.com/mkuptsov/movie-reviews/internal/log"
+	"github.com/mkuptsov/movie-reviews/internal/modules/genres"
+	"github.com/mkuptsov/movie-reviews/internal/modules/stars"
 	"golang.org/x/sync/errgroup"
 )
 

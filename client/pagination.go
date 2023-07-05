@@ -1,6 +1,6 @@
 package client
 
-import "github.com/cloudmachinery/movie-reviews/contracts"
+import "github.com/mkuptsov/movie-reviews/contracts"
 
 func Paginate[I any, Req contracts.PaginationSetter](
 	req Req,

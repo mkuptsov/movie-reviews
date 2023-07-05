@@ -3,7 +3,7 @@ package stars
 import (
 	"context"
 
-	"github.com/cloudmachinery/movie-reviews/internal/log"
+	"github.com/mkuptsov/movie-reviews/internal/log"
 )
 
 type Service struct {

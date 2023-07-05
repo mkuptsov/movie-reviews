@@ -3,8 +3,8 @@ package movies
 import (
 	"time"
 
-	"github.com/cloudmachinery/movie-reviews/internal/modules/genres"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/stars"
+	"github.com/mkuptsov/movie-reviews/internal/modules/genres"
+	"github.com/mkuptsov/movie-reviews/internal/modules/stars"
 )
 
 type Movie struct {

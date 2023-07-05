@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/cloudmachinery/movie-reviews/client"
-	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/server"
 	"github.com/hashicorp/consul/sdk/testutil/retry"
+	"github.com/mkuptsov/movie-reviews/client"
+	"github.com/mkuptsov/movie-reviews/internal/config"
+	"github.com/mkuptsov/movie-reviews/internal/server"
 	"github.com/stretchr/testify/require"
 )
 

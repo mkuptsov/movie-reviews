@@ -1,6 +1,6 @@
 package genres
 
-import "github.com/cloudmachinery/movie-reviews/internal/dbx"
+import "github.com/mkuptsov/movie-reviews/internal/dbx"
 
 type Genre struct {
 	ID   int    `param:"id"`

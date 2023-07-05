@@ -1,10 +1,10 @@
 package auth
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/apperrors"
-	"github.com/cloudmachinery/movie-reviews/internal/jwt"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/internal/apperrors"
+	"github.com/mkuptsov/movie-reviews/internal/jwt"
+	"github.com/mkuptsov/movie-reviews/internal/modules/users"
 )
 
 func Self(next echo.HandlerFunc) echo.HandlerFunc {

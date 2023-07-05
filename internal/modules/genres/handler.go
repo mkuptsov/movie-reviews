@@ -5,9 +5,9 @@ import (
 
 	"golang.org/x/sync/singleflight"
 
-	"github.com/cloudmachinery/movie-reviews/contracts"
-	"github.com/cloudmachinery/movie-reviews/internal/echox"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/contracts"
+	"github.com/mkuptsov/movie-reviews/internal/echox"
 )
 
 type Handler struct {

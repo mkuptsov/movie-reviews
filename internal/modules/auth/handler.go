@@ -3,10 +3,10 @@ package auth
 import (
 	"net/http"
 
-	"github.com/cloudmachinery/movie-reviews/contracts"
-	"github.com/cloudmachinery/movie-reviews/internal/echox"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/users"
 	"github.com/labstack/echo/v4"
+	"github.com/mkuptsov/movie-reviews/contracts"
+	"github.com/mkuptsov/movie-reviews/internal/echox"
+	"github.com/mkuptsov/movie-reviews/internal/modules/users"
 )
 
 type Handler struct {

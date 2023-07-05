@@ -1,9 +1,9 @@
 package reviews
 
 import (
-	"github.com/cloudmachinery/movie-reviews/internal/config"
-	"github.com/cloudmachinery/movie-reviews/internal/modules/movies"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/mkuptsov/movie-reviews/internal/config"
+	"github.com/mkuptsov/movie-reviews/internal/modules/movies"
 )
 
 type Module struct {
