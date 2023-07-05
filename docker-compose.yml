@@ -3,8 +3,8 @@ version: '3'
 services:
   db:
     image: postgres:15
-    volumes:
-      - db_data:/var/lib/postgresql/data
+    # volumes:
+    #   - db_data:/var/lib/postgresql/data
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -47,5 +47,5 @@ services:
     depends_on:
       - migrator
 
-volumes:
-  db_data:
+# volumes:
+#   db_data:
