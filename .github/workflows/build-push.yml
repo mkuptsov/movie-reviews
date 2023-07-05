@@ -1,0 +1,32 @@
+name: Build and push docker image
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: eu-north-1b
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build, tag, and push image to Docker Hub
+        run: |
+          docker build -t maxkuptsov/movie-reviews: ${{ github.sha }} .
+          docker tag maxkuptsov/movie-reviews: ${{ github.sha }} maxkuptsov/movie-reviews:latest
+          docker push maxkuptsov/movie-reviews: ${{ github.sha }}
+          docker push maxkuptsov/movie-reviews: latest
