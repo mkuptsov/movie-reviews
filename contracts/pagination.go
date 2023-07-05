@@ -14,6 +14,21 @@ type PaginatedResponse[T any] struct {
 	Items []*T `json:"items"`
 }
 
+type PaginationSetter interface {
+	SetPage(page int)
+	SetSize(size int)
+}
+
+var _ PaginationSetter = (*PaginatedRequest)(nil)
+
+func (r *PaginatedRequest) SetPage(page int) {
+	r.Page = page
+}
+
+func (r *PaginatedRequest) SetSize(size int) {
+	r.Size = size
+}
+
 func (req *PaginatedRequest) ToQueryParams() map[string]string {
 	params := make(map[string]string, 2)
 	if req.Page > 0 {

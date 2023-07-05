@@ -5,3 +5,9 @@ Dockerfile
 .dockerignore
 .env
 tern
+scrapper
+integration_tests
+.github
+.vscode
+.golangci.yml
+Makefile
