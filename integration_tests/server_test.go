@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// this comment added to trigger github actions
+
 func TestServer(t *testing.T) {
 	prepareInfrastructure(t, runServer)
 }
