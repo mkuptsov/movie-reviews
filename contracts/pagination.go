@@ -29,13 +29,13 @@ func (r *PaginatedRequest) SetSize(size int) {
 	r.Size = size
 }
 
-func (req *PaginatedRequest) ToQueryParams() map[string]string {
+func (r *PaginatedRequest) ToQueryParams() map[string]string {
 	params := make(map[string]string, 2)
-	if req.Page > 0 {
-		params["page"] = strconv.Itoa(req.Page)
+	if r.Page > 0 {
+		params["page"] = strconv.Itoa(r.Page)
 	}
-	if req.Size > 0 {
-		params["size"] = strconv.Itoa(req.Size)
+	if r.Size > 0 {
+		params["size"] = strconv.Itoa(r.Size)
 	}
 	return params
 }
