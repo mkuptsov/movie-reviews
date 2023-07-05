@@ -26,7 +26,7 @@ jobs:
 
       - name: Build, tag, and push image to Docker Hub
         run: |
-          docker build -t maxkuptsov/movie-reviews: ${{ github.sha }} .
-          docker tag maxkuptsov/movie-reviews: ${{ github.sha }} maxkuptsov/movie-reviews:latest
-          docker push maxkuptsov/movie-reviews: ${{ github.sha }}
-          docker push maxkuptsov/movie-reviews: latest
+          docker build -t maxkuptsov/movie-reviews:${{ github.sha }} .
+          docker tag maxkuptsov/movie-reviews:${{ github.sha }} maxkuptsov/movie-reviews:latest
+          docker push maxkuptsov/movie-reviews:${{ github.sha }}
+          docker push maxkuptsov/movie-reviews:latest
