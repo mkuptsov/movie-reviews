@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/mkuptsov/movie-reviews/client"
-	"github.com/mkuptsov/movie-reviews/internal/apperrors"
 )
 
 func movieReviewsUser() *schema.Resource {
@@ -32,14 +30,6 @@ func userRead(_ context.Context, rd *schema.ResourceData, i any) diag.Diagnostic
 
 	username := rd.Get("username").(string)
 	user, err := cwt.client.GetUserByUserName(username)
-	if cerr, ok := err.(*client.Error); ok {
-		if cerr.Code == int(apperrors.NotFoundCode) {
-			err = rd.Set("role", "")
-			if err != nil {
-				diag.FromErr(err)
-			}
-		}
-	}
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("cannot get user with username %s: %w", username, err))
 	}

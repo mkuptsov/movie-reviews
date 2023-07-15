@@ -48,14 +48,6 @@ func userRoleCreateOrUpdate(_ context.Context, rd *schema.ResourceData, i any) d
 		diag.FromErr(fmt.Errorf("cannot set role userID=%d role=%s: %w", userID, role, err))
 	}
 
-	err = rd.Set("user_id", userID)
-	if err != nil {
-		diag.FromErr(err)
-	}
-	err = rd.Set("user_role", role)
-	if err != nil {
-		diag.FromErr(err)
-	}
 	rd.SetId(strconv.Itoa(userID))
 
 	return nil
@@ -75,15 +67,10 @@ func userRoleRead(_ context.Context, rd *schema.ResourceData, i any) diag.Diagno
 		return diag.FromErr(fmt.Errorf("cannot get user with ID %d: %w", userID, err))
 	}
 
-	err = rd.Set("user_id", user.ID)
+	err = rd.Set("role", user.Role)
 	if err != nil {
 		diag.FromErr(err)
 	}
-	err = rd.Set("user_role", user.Role)
-	if err != nil {
-		diag.FromErr(err)
-	}
-	rd.SetId(strconv.Itoa(user.ID))
 
 	return nil
 }
@@ -103,16 +90,6 @@ func userRoleDelete(_ context.Context, rd *schema.ResourceData, i any) diag.Diag
 	if err != nil {
 		diag.FromErr(fmt.Errorf("cannot set role userID=%d role=user: %w", userID, err))
 	}
-
-	err = rd.Set("user_id", userID)
-	if err != nil {
-		diag.FromErr(err)
-	}
-	err = rd.Set("user_role", "user")
-	if err != nil {
-		diag.FromErr(err)
-	}
-	rd.SetId(strconv.Itoa(userID))
 
 	return nil
 }

@@ -4,6 +4,6 @@
 provider "localhost/providers/moviereviews" {
   version = "0.1.0"
   hashes = [
-    "h1:Pk7W0cI011Sm3pjIEaIbo8I7kJ4kVo8NEhq7YzI2Qp8=",
+    "h1:E0KF/zhYV3KIMWo+FTXblm8n2fMjJ2rWBMOwrtxScHw=",
   ]
 }
